@@ -1,5 +1,5 @@
-import { supabase } from '@/utils/supabase/supabase';
-import { Link, useRouter } from 'expo-router';
+import { useAuth } from '@/providers/AuthProvider';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -7,19 +7,20 @@ export default function LoginScreen() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { signIn } = useAuth();
 
-  const handleLogin = async () => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+  // const handleLogin = async () => {
+  //   const { data, error } = await supabase.auth.signInWithPassword({
+  //     email,
+  //     password,
+  //   });
 
-    if (error) {
-      console.error(error);
-      return;
-    }
-    router.push('/(tabs)');
-  };
+  //   if (error) {
+  //     console.error(error);
+  //     return;
+  //   }
+  //   router.push('/(tabs)');
+  // };
 
   return (
     <View className='flex-1 items-center justify-center bg-white'>
@@ -40,7 +41,7 @@ export default function LoginScreen() {
         />
         <TouchableOpacity
           className='px-4 py-2 rounded-lg bg-black'
-          onPress={handleLogin}
+          onPress={() => signIn(email, password)}
         >
           <Text className='text-white font-bold text-lg text-center'>
             Sign In
