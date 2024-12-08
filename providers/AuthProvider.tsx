@@ -6,7 +6,7 @@ import { createContext, ReactNode, useContext, useState } from 'react';
 export type Profile = Database['public']['Tables']['profiles']['Row'];
 
 interface AuthContextType {
-  profile: Profile | null;
+  profile: Profile | undefined | null;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, username: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -23,10 +23,12 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] =
-    useState<Database['public']['Tables']['profiles']>();
+    useState<Database['public']['Tables']['profiles']['Row']>();
   const router = useRouter();
 
   const getProfile = async (id: string) => {
+    const user = await supabase.auth.getUser();
+
     const { data, error } = await supabase
       .from('profiles')
       .select('*')

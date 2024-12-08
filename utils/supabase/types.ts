@@ -255,6 +255,7 @@ export type Database = {
           author_id: string;
           body: string;
           created_at: string;
+          description: string | null;
           id: string;
           post_type: string;
           title: string;
@@ -264,6 +265,7 @@ export type Database = {
           author_id: string;
           body: string;
           created_at?: string;
+          description: string | null;
           id: string;
           post_type: string;
           title: string;
@@ -273,6 +275,7 @@ export type Database = {
           author_id?: string;
           body?: string;
           created_at?: string;
+          description?: string | null;
           id?: string;
           post_type?: string;
           title?: string;

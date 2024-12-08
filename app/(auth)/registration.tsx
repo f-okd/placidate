@@ -1,7 +1,15 @@
-import { supabase } from '@/utils/supabase/supabase';
-import { Link, useRouter } from 'expo-router';
+import { useAuth } from '@/providers/AuthProvider';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  Platform,
+  ToastAndroid,
+  Alert,
+} from 'react-native';
 
 export default function RegistrationScreen() {
   const router = useRouter();
@@ -10,22 +18,21 @@ export default function RegistrationScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  const { signUp } = useAuth();
+
   const handleSignUp = async () => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          username,
-          avatar_url: null,
-        },
-      },
-    });
-    if (error) {
-      console.error(error);
-      return;
+    if (confirmPassword == password) {
+      return signUp(email, password, username);
     }
-    router.push('/(tabs)');
+
+    if (Platform.OS === 'android') {
+      ToastAndroid.show(
+        'Error: Passwords must be the same',
+        ToastAndroid.SHORT
+      );
+    } else {
+      Alert.alert('Error: Passwords must be the same');
+    }
   };
 
   return (
