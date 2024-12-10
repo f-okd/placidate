@@ -31,11 +31,13 @@ export default function Header({
         </TouchableOpacity>
       </View>
       <View className='w-10'>
-        <TouchableOpacity
-          onPress={() => console.log('Navigate to notification screen')}
-        >
-          <Ionicons name='notifications' size={22} />
-        </TouchableOpacity>
+        {showNotificationIcon && (
+          <TouchableOpacity
+            onPress={() => console.log('Navigate to notification screen')}
+          >
+            <Ionicons name='notifications' size={22} />
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );

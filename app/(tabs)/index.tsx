@@ -8,6 +8,7 @@ import { FlatList, Text, View } from 'react-native';
 type PostType = Database['public']['Tables']['posts']['Row'];
 type PostProfileUsernameJoin = {
   profiles: {
+    id: string;
     username: string;
     avatar_url: string | null;
   } | null;
@@ -21,18 +22,15 @@ export default function HomeScreen() {
   }, []);
 
   const getPosts = async (): Promise<void> => {
-    console.log('hey');
     const { data, error } = await supabase
       .from('posts')
-      .select('*, profiles!posts_author_id_fkey(username, avatar_url)')
-      // .select('*')
+      .select('*, profiles!posts_author_id_fkey(id, username, avatar_url)')
       .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching posts:', error);
       return;
     }
-    console.log(data);
     setPosts(data);
   };
 

@@ -78,7 +78,7 @@ export type Database = {
         Insert: {
           body: string;
           created_at?: string;
-          id: string;
+          id?: string;
           post_id: string;
           user_id: string;
         };
@@ -189,7 +189,7 @@ export type Database = {
         Insert: {
           body: string;
           created_at?: string;
-          id: string;
+          id?: string;
           receiver_id: string;
           sender_id: string;
         };
@@ -265,8 +265,8 @@ export type Database = {
           author_id: string;
           body: string;
           created_at?: string;
-          description: string | null;
-          id: string;
+          description?: string | null;
+          id?: string;
           post_type: string;
           title: string;
           updated_at?: string | null;
@@ -326,7 +326,7 @@ export type Database = {
         };
         Insert: {
           created_at?: string;
-          id: string;
+          id?: string;
           name: string;
         };
         Update: {

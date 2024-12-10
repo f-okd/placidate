@@ -1,5 +1,6 @@
 import { supabase } from '@/utils/supabase/supabase';
 import { Database } from '@/utils/supabase/types';
+import { getProfile } from '@/utils/userUserInteractions';
 import { useRouter } from 'expo-router';
 import { createContext, ReactNode, useContext, useState } from 'react';
 
@@ -26,19 +27,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     useState<Database['public']['Tables']['profiles']['Row']>();
   const router = useRouter();
 
-  const getProfile = async (id: string) => {
-    const user = await supabase.auth.getUser();
-
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error) return console.error(error);
-    setProfile(data);
-  };
-
   const signIn = async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -46,7 +34,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     if (error) return console.error(error);
-    getProfile(data.user.id);
+
+    const profile = await getProfile(data.user.id);
+
+    if (!profile)
+      return console.error(
+        'Error signing in: Could not fetch profile for user ID'
+      );
+
+    setProfile(profile);
     router.push('/(tabs)');
   };
 
@@ -62,15 +58,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       },
     });
     if (error) return console.error(error);
-    if (!data.user) return console.error('no user');
 
-    getProfile(data.user.id);
+    if (!data.user)
+      return console.error(
+        'Error Signing Up: Could not update user and session'
+      );
+
+    const profile = await getProfile(data.user.id);
+
+    if (!profile)
+      return console.error(
+        'Error signing in: Could not fetch profile for user ID'
+      );
+
+    setProfile(profile);
     router.push('/(tabs)');
   };
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) return console.error(error);
+
+    setProfile(undefined);
   };
 
   return (

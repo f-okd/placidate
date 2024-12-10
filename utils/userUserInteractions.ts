@@ -18,3 +18,14 @@ const unFollowUser = async (
     status: 'accepted',
   });
 };
+
+export const getProfile = async (id: string) => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error) return console.error(error);
+  return data;
+};
