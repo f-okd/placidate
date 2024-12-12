@@ -20,24 +20,29 @@ import {
   Platform,
   Keyboard,
 } from 'react-native';
-import { HomePagePosts } from './(tabs)';
+import { TGetPosts } from './(tabs)';
 import { FlatList } from 'react-native';
 import Comment from '@/components/Comment';
 import { useAuth } from '@/providers/AuthProvider';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { getPostTagsQuery, TPostTagsQuery } from '@/components/Post';
+import Tag from '@/components/Tag';
 
 interface IViewPostProps {
-  post: HomePagePosts;
+  post: TGetPosts;
 }
 
 export default function ViewPostScreen() {
-  const [post, setPost] = useState<HomePagePosts>();
+  const [post, setPost] = useState<TGetPosts[number]>();
   const [comments, setComments] = useState<TCommentsAndAuthors[]>([]);
+  const [tags, setTags] = useState<TPostTagsQuery>([]);
   const [text, setText] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
+
   const { profile } = useAuth();
   const router = useRouter();
-  const { post_id } = useLocalSearchParams();
+  const params = useLocalSearchParams();
+  const post_id = params.post_id as string;
 
   if (!profile) {
     console.log('Error showing post: Couldnt load profile from  auth context');
@@ -48,8 +53,24 @@ export default function ViewPostScreen() {
     setLoading(true);
     getPost();
     loadComments();
+    getPostTags(post_id);
     setLoading(false);
   }, []);
+
+  const getPostTags = async (postId: string) => {
+    const { data, error } = await supabase
+      .from('post_tags')
+      .select('tag_id, tags (name)')
+      .eq('post_id', postId);
+
+    if (error) {
+      console.error('Error fetching tags:', error);
+      return [];
+    }
+
+    console.log(data);
+    setTags(data);
+  };
 
   const getPost = async (): Promise<void> => {
     const { data, error } = await supabase
@@ -131,6 +152,15 @@ export default function ViewPostScreen() {
               <Text className='font-bold'>{username + ': '}</Text>
               {description && <Text>{description}</Text>}
             </Text>
+          </View>
+
+          <View className='p-2 border-b h-[80px]'>
+            <View className='flex-row flex-wrap gap-1'>
+              {tags &&
+                tags.map((tag) => (
+                  <Tag key={tag.tag_id} tagName={tag.tags?.name ?? ''} />
+                ))}
+            </View>
           </View>
 
           <View className='p-2 border-b h-[80px]'>
