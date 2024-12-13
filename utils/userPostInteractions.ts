@@ -1,31 +1,4 @@
 import { supabase } from './supabase/supabase';
-import { Database, Tables } from './supabase/types';
-
-export type TComments = Tables<'comments'>;
-export type TProfile = Tables<'profiles'>;
-
-export type TCommentsAndAuthors = TComments & {
-  profiles: TProfile | null;
-};
-
-export const getCommentsAndAuthors = async (
-  post_id: string
-): Promise<TCommentsAndAuthors[] | null> => {
-  const { data, error } = await supabase
-    .from('comments')
-    .select('*,profiles(*)')
-    .eq('post_id', post_id);
-
-  if (error) {
-    console.error(error.message);
-    return null;
-  }
-  if (!data) {
-    console.error(`Error fetching comments for post: ${post_id}`);
-    return null;
-  }
-  return data;
-};
 
 export const addComment = async (
   sender_id: string,
@@ -35,4 +8,51 @@ export const addComment = async (
   const { error } = await supabase
     .from('comments')
     .insert({ user_id: sender_id, post_id: post_id, body: comment });
+};
+
+export const postIsLikedByUser = async (
+  post_id: string,
+  user_id: string
+): Promise<boolean> => {
+  const { count, error } = await supabase
+    .from('likes')
+    .select('*', { count: 'exact', head: true })
+    .eq('post_id', post_id)
+    .eq('user_id', user_id);
+
+  if (error) {
+    console.error(
+      `Error checking if post ${post_id} was liked by user ${user_id}:`,
+      error.message
+    );
+    return false;
+  }
+
+  return count ? count > 0 : false;
+};
+
+export const likePost = async (
+  post_id: string,
+  user_id: string
+): Promise<void> => {
+  const { error } = await supabase.from('likes').insert({ post_id, user_id });
+
+  if (error) {
+    console.error('Error unliking post: ', post_id, 'as user: ', user_id);
+  }
+};
+
+export const unlikePost = async (
+  post_id: string,
+  user_id: string
+): Promise<void> => {
+  const { error } = await supabase
+    .from('likes')
+    .delete()
+    .eq('post_id', post_id)
+    .eq('user_id', user_id);
+
+  if (error) {
+    console.error('Error unliking post: ', post_id, 'as user: ', user_id);
+  }
 };

@@ -29,6 +29,7 @@ export default function RootLayout() {
       <Stack>
         <Stack.Screen name='(auth)' options={{ headerShown: false }} />
         <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
+        <Stack.Screen name='bookmarks' options={{ headerShown: false }} />
         <Stack.Screen name='post' options={{ headerShown: false }} />
         <Stack.Screen name='user' options={{ headerShown: false }} />
         <Stack.Screen name='+not-found' />

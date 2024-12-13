@@ -2,9 +2,9 @@ import Header from '@/components/Header';
 import { supabase } from '@/utils/supabase/supabase';
 import {
   addComment,
-  getCommentsAndAuthors,
-  TComments,
-  TCommentsAndAuthors,
+  likePost,
+  postIsLikedByUser,
+  unlikePost,
 } from '@/utils/userPostInteractions';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -27,6 +27,8 @@ import { useAuth } from '@/providers/AuthProvider';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { getPostTagsQuery, TPostTagsQuery } from '@/components/Post';
 import Tag from '@/components/Tag';
+import ActionBar from '@/components/ActionBar';
+import { getCommentsAndAuthors, TCommentsAndAuthors } from '@/utils/posts';
 
 interface IViewPostProps {
   post: TGetPosts;
@@ -38,6 +40,8 @@ export default function ViewPostScreen() {
   const [tags, setTags] = useState<TPostTagsQuery>([]);
   const [text, setText] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
+  const [liked, setLiked] = useState<boolean>(false);
+  const [saved, setSaved] = useState<boolean>(false);
 
   const { profile } = useAuth();
   const router = useRouter();
@@ -54,6 +58,7 @@ export default function ViewPostScreen() {
     getPost();
     loadComments();
     getPostTags(post_id);
+    setLikedAndSavedStatus();
     setLoading(false);
   }, []);
 
@@ -68,7 +73,6 @@ export default function ViewPostScreen() {
       return [];
     }
 
-    console.log(data);
     setTags(data);
   };
 
@@ -100,6 +104,21 @@ export default function ViewPostScreen() {
     await loadComments();
   };
 
+  const setLikedAndSavedStatus = async (): Promise<void> => {
+    const liked = await postIsLikedByUser(post_id, profile.id);
+    const saved = false; // update when functionality is added
+    setLiked(liked);
+  };
+
+  const handleLike = async () => {
+    await likePost(post_id, profile.id);
+    setLiked(true);
+  };
+  const handleUnlike = async () => {
+    await unlikePost(post_id, profile.id);
+    setLiked(false);
+  };
+
   if (loading) {
     return (
       <View>
@@ -125,68 +144,97 @@ export default function ViewPostScreen() {
   } = post;
   const { description } = post;
 
+  const renderHeader = () => (
+    <>
+      {/* Attribution section */}
+      <TouchableOpacity
+        className='flex-row items-center p-2'
+        onPress={() => router.push(`/profile?user_id=${id}`)}
+      >
+        <Image
+          src={'https://picsum.photos/200'}
+          style={profilePictureImageStyle}
+        />
+        <Text className='p-2 font-bold'>{username}</Text>
+      </TouchableOpacity>
+
+      {/* Post section */}
+      <View className='min-h-[20%] p-4 border-y border-gray-200'>
+        <Text className='font-bold text-2xl mb-2'>{post?.title}</Text>
+        <Text className='text-base'>{post?.body}</Text>
+      </View>
+
+      {/* Description */}
+      {description && (
+        <View className='px-4 py-2'>
+          <Text>{description}</Text>
+        </View>
+      )}
+
+      {/* Tags */}
+      {tags && (
+        <View className='px-4 py-2'>
+          <View className='flex-row flex-wrap gap-1'>
+            {tags?.map((tag) => (
+              <Tag key={tag.tag_id} tagName={tag.tags?.name ?? ''} />
+            ))}
+          </View>
+        </View>
+      )}
+
+      <View className='px-4 py-2'>
+        <ActionBar
+          saved={saved}
+          liked={liked}
+          onLike={handleLike}
+          onUnlike={handleUnlike}
+        />
+      </View>
+
+      <View className='border-t border-gray-200' />
+    </>
+  );
+
   return (
     <KeyboardAvoidingView
-      className='flex-1'
-      behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
+      className='flex-1 bg-white'
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View className='flex-1 bg-white'>
-          <Header title='Placidate' showBackIcon showNotificationIcon={false} />
-          <TouchableOpacity
-            className='flex-row items-center border-b border-black'
-            onPress={() => router.push(`/profile?user_id=${id}`)}
-          >
-            <Image
-              src={'https://picsum.photos/200'}
-              style={profilePictureImageStyle}
-            />
-            <Text className='p-2 font-bold'>{username}</Text>
-          </TouchableOpacity>
-          <View className='border-b h-[150px] p-3'>
-            <Text>{post.body}</Text>
-          </View>
+      <View className='flex-1'>
+        <Header title='' showBackIcon showNotificationIcon={false} />
 
-          <View className='p-2 border-b h-[80px]'>
-            <Text>
-              <Text className='font-bold'>{username + ': '}</Text>
-              {description && <Text>{description}</Text>}
-            </Text>
-          </View>
+        <FlatList
+          data={comments}
+          renderItem={({ item }) => <Comment comment={item} />}
+          keyExtractor={(item) => item.id}
+          ListHeaderComponent={renderHeader}
+          contentContainerStyle={{ flexGrow: 1 }}
+          ListEmptyComponent={() => (
+            <Text className='text-gray-500 p-4'>No comments yet</Text>
+          )}
+          showsVerticalScrollIndicator={true}
+        />
 
-          <View className='p-2 border-b h-[80px]'>
-            <View className='flex-row flex-wrap gap-1'>
-              {tags &&
-                tags.map((tag) => (
-                  <Tag key={tag.tag_id} tagName={tag.tags?.name ?? ''} />
-                ))}
-            </View>
-          </View>
-
-          <View className='p-2 border-b h-[80px]'>
-            {comments.length > 0 ? (
-              <FlatList
-                inverted
-                data={comments}
-                renderItem={({ item }) => <Comment comment={item}></Comment>}
-              />
-            ) : (
-              <Text>No comments yet </Text>
-            )}
-          </View>
-          <View className='flex-row gap-2 items-start justify-start w-full px-3 my-2'>
+        {/* Comment input*/}
+        <View className='px-4 py-3 border-t border-gray-200 bg-white'>
+          <View className='flex-row gap-2 items-center'>
             <TextInput
-              className='flex-1 bg-white p-4 rounded-3xl border border-gray-300'
+              className='flex-1 bg-gray-100 px-4 py-2 rounded-full'
               placeholder='Add a comment'
-              onChange={(e) => setText(e.nativeEvent.text)}
               value={text}
+              onChange={(e) => setText(e.nativeEvent.text)}
             />
-            <TouchableOpacity onPress={handleAddComment}>
-              <Ionicons name='arrow-forward-circle-outline' size={40} />
+            <TouchableOpacity onPress={handleAddComment} className='p-2'>
+              <Ionicons
+                name='arrow-forward-circle-outline'
+                size={32}
+                color='black'
+              />
             </TouchableOpacity>
           </View>
         </View>
-      </TouchableWithoutFeedback>
+      </View>
     </KeyboardAvoidingView>
   );
 }
