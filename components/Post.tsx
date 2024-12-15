@@ -1,21 +1,8 @@
-import { View, Text, TouchableOpacity } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, Image } from 'react-native';
+import React from 'react';
 import { TGetPosts } from '@/app/(tabs)';
-import { Image } from 'react-native';
 import { useRouter } from 'expo-router';
-import { supabase } from '@/utils/supabase/supabase';
-import { QueryData } from '@supabase/supabase-js';
 import Tag from './Tag';
-
-export const getPostTagsQuery = supabase.from('post_tags').select(
-  `
-      tag_id,
-      tags (
-        name
-      )
-    `
-);
-export type TPostTagsQuery = QueryData<typeof getPostTagsQuery>;
 
 export default function Post({ post }: { post: TGetPosts[number] }) {
   if (!post) {
@@ -24,39 +11,10 @@ export default function Post({ post }: { post: TGetPosts[number] }) {
     return <View>Error: Profile is missing</View>;
   }
 
-  const [loading, setLoading] = useState<boolean>(true);
-  const [tags, setTags] = useState<TPostTagsQuery>([]);
-
-  useEffect(() => {
-    setLoading(true);
-    getPostTags(post.id);
-    setLoading(false);
-  }, []);
-
-  const getPostTags = async (postId: string) => {
-    const { data, error } = await getPostTagsQuery.eq('post_id', postId);
-
-    if (error) {
-      console.error('Error fetching tags:', error);
-      return [];
-    }
-
-    setTags(data);
-  };
-
+  const router = useRouter();
   const {
     profiles: { id, username },
   } = post;
-
-  const router = useRouter();
-
-  if (loading) {
-    return (
-      <View>
-        <Text>Loading</Text>
-      </View>
-    );
-  }
 
   return (
     <View className='border m-1'>
@@ -76,8 +34,8 @@ export default function Post({ post }: { post: TGetPosts[number] }) {
         </View>
         <View className='p-2 border-b h-[80px]'>
           <View className='flex-row flex-wrap gap-1'>
-            {tags &&
-              tags.map((tag) => (
+            {post.post_tags &&
+              post.post_tags.map((tag) => (
                 <Tag key={tag.tag_id} tagName={tag.tags?.name ?? ''} />
               ))}
           </View>

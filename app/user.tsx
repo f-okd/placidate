@@ -1,50 +1,105 @@
 import Header from '@/components/Header';
+import ProfileHeader from '@/components/ProfileHeader';
+import ProfilePost from '@/components/ProfilePostPreview';
 import { Profile, useAuth } from '@/providers/AuthProvider';
+import {
+  getPostsCreatedByUser,
+  getUserFollowCounts,
+  TPosts,
+} from '@/utils/users';
 import { getProfile } from '@/utils/userUserInteractions';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Text, View } from 'react-native';
 
 export default function OtherUsersProfileScreen() {
+  const { profile: currentlyLoggedInUser } = useAuth();
   const { user_id } = useLocalSearchParams();
-  const [profile, setProfile] = useState<Profile | null>(null);
   const router = useRouter();
+
+  const [profile, setProfile] = useState<Profile | null>();
   const [loading, setLoading] = useState(true);
+  const [posts, setPosts] = useState<TPosts[]>([]);
+  const [postCount, setPostCount] = useState<number>(0);
+  const [followingCount, setFollowingCount] = useState<number>(0);
+  const [followerCount, setFollowerCount] = useState<number>(0);
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    if (currentlyLoggedInUser?.id == user_id) {
+      router.replace('/(tabs)/profile');
+      return;
+    }
+
+    const loadAllProfileData = async () => {
       try {
-        const data = await getProfile(String(user_id));
-        if (!data) {
-          return console.error('Could not find profile:', user_id);
+        setLoading(true);
+        // 1.) Fetch and set profile
+        const profileData = await getProfile(String(user_id));
+        if (!profileData) {
+          console.error('Could not find profile:', user_id);
+          return router.back();
         }
-        setProfile(data);
-        setLoading(false);
+        console.log(profileData.username);
+        setProfile(profileData);
+
+        // 2.) Fetch and set follow and post counts
+        const [{ followers, following }, posts] = await Promise.all([
+          getUserFollowCounts(profileData.id),
+          getPostsCreatedByUser(profileData.id),
+        ]);
+
+        setFollowingCount(following);
+        setFollowerCount(followers);
+
+        if (posts) {
+          setPosts(posts);
+          setPostCount(posts.length);
+        } else {
+          console.error('Error setting posts for profile:', profileData.id);
+          setPosts([]);
+          setPostCount(0);
+        }
       } catch (error) {
-        return console.error('Error fetching profile:', error);
+        console.error('Error loading profile data:', error);
+        setPosts([]);
+        setPostCount(0);
+      } finally {
+        setLoading(false);
       }
     };
-    fetchProfile();
-  }, [user_id]);
+
+    loadAllProfileData();
+  }, [user_id, currentlyLoggedInUser?.id]);
 
   if (loading) {
     return (
-      <View>
-        <Text>Loading</Text>
+      <View className='flex-1 bg-white items-center justify-center'>
+        <ActivityIndicator size={'large'} />
       </View>
     );
   }
+
   if (!profile) {
     console.error('No profile set');
     return router.back();
   }
-  return (
-    <View className=''>
-      <Header title={profile.username} showBackIcon />
 
-      <Text className='text-black font-bold text-l'>
-        {JSON.stringify(profile)}
-      </Text>
+  return (
+    <View className='flex-1 bg-white'>
+      <Header title={profile.username} showBackIcon />
+      <ProfileHeader
+        profile={profile}
+        currentlyLoggedInUser={false}
+        postCount={postCount}
+        followingCount={followingCount}
+        followerCount={followerCount}
+      />
+      <FlatList
+        data={posts}
+        snapToStart
+        renderItem={({ item }) => <ProfilePost post={item}></ProfilePost>}
+        className='w-full px-4'
+      />
     </View>
   );
 }

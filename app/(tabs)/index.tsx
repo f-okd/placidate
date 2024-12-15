@@ -2,12 +2,30 @@ import Header from '@/components/Header';
 import Post from '@/components/Post';
 import { supabase } from '@/utils/supabase/supabase';
 import { QueryData } from '@supabase/supabase-js';
-import { useEffect, useState } from 'react';
-import { FlatList, View, Text } from 'react-native';
+import { useCallback, useState } from 'react';
+import {
+  FlatList,
+  View,
+  Text,
+  RefreshControl,
+  ActivityIndicator,
+} from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 
 const getPostsQuery = supabase
   .from('posts')
-  .select('*, profiles!posts_author_id_fkey(id, username, avatar_url)')
+  .select(
+    `
+    *,
+    profiles!posts_author_id_fkey(id, username, avatar_url),
+    post_tags(
+      tag_id,
+      tags(
+        name
+      )
+    )
+  `
+  )
   .order('created_at', { ascending: false });
 
 export type TGetPosts = QueryData<typeof getPostsQuery>;
@@ -15,26 +33,59 @@ export type TGetPosts = QueryData<typeof getPostsQuery>;
 export default function HomeScreen() {
   const [posts, setPosts] = useState<TGetPosts>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  useEffect(() => {
-    setLoading(true);
-    getPosts();
-    setLoading(false);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+
+  const getPosts = async (showLoadingState = true): Promise<void> => {
+    if (showLoadingState) setLoading(true);
+
+    try {
+      const { data, error } = await getPostsQuery;
+
+      if (error) {
+        console.error('Error fetching posts:', error);
+        return;
+      }
+
+      setPosts(data);
+    } catch (error) {
+      console.error('Unexpected error fetching posts:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+    getPosts(false);
   }, []);
 
-  const getPosts = async (): Promise<void> => {
-    const { data, error } = await getPostsQuery;
+  useFocusEffect(
+    useCallback(() => {
+      getPosts();
 
-    if (error) {
-      console.error('Error fetching posts:', error);
-      return;
-    }
-    setPosts(data);
-  };
+      // Optional: Setup real-time subscription for new posts
+      const subscription = supabase
+        .channel('posts')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'posts' },
+          () => {
+            getPosts(false);
+          }
+        )
+        .subscribe();
+
+      return () => {
+        subscription.unsubscribe();
+      };
+    }, [])
+  );
 
   if (loading) {
     return (
-      <View>
-        <Text>Loading</Text>
+      <View className='flex-1 bg-white items-center justify-center'>
+        <ActivityIndicator size={'large'} />
       </View>
     );
   }
@@ -45,8 +96,12 @@ export default function HomeScreen() {
       <FlatList
         data={posts}
         snapToStart
-        renderItem={({ item }) => <Post post={item}></Post>}
+        renderItem={({ item }) => <Post post={item} />}
         className='w-full px-4'
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
+        keyExtractor={(item) => item.id}
       />
     </View>
   );

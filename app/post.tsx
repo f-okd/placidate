@@ -1,4 +1,9 @@
+import ActionBar from '@/components/ActionBar';
+import Comment from '@/components/Comment';
 import Header from '@/components/Header';
+import Tag from '@/components/Tag';
+import { useAuth } from '@/providers/AuthProvider';
+import { getCommentsAndAuthors, TCommentsAndAuthors } from '@/utils/posts';
 import { supabase } from '@/utils/supabase/supabase';
 import {
   addComment,
@@ -6,29 +11,21 @@ import {
   postIsLikedByUser,
   unlikePost,
 } from '@/utils/userPostInteractions';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
+  FlatList,
   Image,
-  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  KeyboardAvoidingView,
-  TouchableWithoutFeedback,
-  Platform,
-  Keyboard,
 } from 'react-native';
 import { TGetPosts } from './(tabs)';
-import { FlatList } from 'react-native';
-import Comment from '@/components/Comment';
-import { useAuth } from '@/providers/AuthProvider';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { getPostTagsQuery, TPostTagsQuery } from '@/components/Post';
-import Tag from '@/components/Tag';
-import ActionBar from '@/components/ActionBar';
-import { getCommentsAndAuthors, TCommentsAndAuthors } from '@/utils/posts';
 
 interface IViewPostProps {
   post: TGetPosts;
@@ -37,7 +34,6 @@ interface IViewPostProps {
 export default function ViewPostScreen() {
   const [post, setPost] = useState<TGetPosts[number]>();
   const [comments, setComments] = useState<TCommentsAndAuthors[]>([]);
-  const [tags, setTags] = useState<TPostTagsQuery>([]);
   const [text, setText] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [liked, setLiked] = useState<boolean>(false);
@@ -49,7 +45,9 @@ export default function ViewPostScreen() {
   const post_id = params.post_id as string;
 
   if (!profile) {
-    console.log('Error showing post: Couldnt load profile from  auth context');
+    console.error(
+      'Error showing post: Couldnt load profile from  auth context'
+    );
     return router.back();
   }
 
@@ -57,30 +55,27 @@ export default function ViewPostScreen() {
     setLoading(true);
     getPost();
     loadComments();
-    getPostTags(post_id);
     setLikedAndSavedStatus();
     setLoading(false);
   }, []);
 
-  const getPostTags = async (postId: string) => {
-    const { data, error } = await supabase
-      .from('post_tags')
-      .select('tag_id, tags (name)')
-      .eq('post_id', postId);
-
-    if (error) {
-      console.error('Error fetching tags:', error);
-      return [];
-    }
-
-    setTags(data);
-  };
-
   const getPost = async (): Promise<void> => {
     const { data, error } = await supabase
       .from('posts')
-      .select('*, profiles!posts_author_id_fkey(id, username, avatar_url)')
+      .select(
+        `
+        *,
+        profiles!posts_author_id_fkey(id, username, avatar_url),
+        post_tags(
+          tag_id,
+          tags(
+            name
+          )
+        )
+      `
+      )
       .eq('id', post_id)
+      .order('created_at', { ascending: false })
       .single();
 
     if (error) {
@@ -121,8 +116,8 @@ export default function ViewPostScreen() {
 
   if (loading) {
     return (
-      <View>
-        <Text>LOADING</Text>
+      <View className='flex-1 bg-white items-center justify-center'>
+        <ActivityIndicator size={'large'} />
       </View>
     );
   }
@@ -158,7 +153,7 @@ export default function ViewPostScreen() {
         <Text className='p-2 font-bold'>{username}</Text>
       </TouchableOpacity>
 
-      {/* Post section */}
+      {/* Post body section */}
       <View className='min-h-[20%] p-4 border-y border-gray-200'>
         <Text className='font-bold text-2xl mb-2'>{post?.title}</Text>
         <Text className='text-base'>{post?.body}</Text>
@@ -172,10 +167,10 @@ export default function ViewPostScreen() {
       )}
 
       {/* Tags */}
-      {tags && (
+      {post.post_tags && (
         <View className='px-4 py-2'>
           <View className='flex-row flex-wrap gap-1'>
-            {tags?.map((tag) => (
+            {post.post_tags?.map((tag) => (
               <Tag key={tag.tag_id} tagName={tag.tags?.name ?? ''} />
             ))}
           </View>
