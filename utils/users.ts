@@ -1,11 +1,12 @@
+import { TPost } from './posts';
 import { supabase } from './supabase/supabase';
 import { Tables } from './supabase/types';
 
-export type TPosts = Tables<'posts'>;
+export type TProfile = Tables<'profiles'>;
 
 export const getPostsCreatedByUser = async (
   user_id: string
-): Promise<TPosts[] | null> => {
+): Promise<TPost[] | null> => {
   const { data, error } = await supabase
     .from('posts')
     .select('*')
@@ -37,4 +38,17 @@ export const getUserFollowCounts = async (
     followers: followers || 0,
     following: following || 0,
   };
+};
+
+export const searchForUsers = async (
+  searchTerm: string
+): Promise<TProfile[]> => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select()
+    .like('username', `%${searchTerm}%`);
+  if (error) {
+    console.error('Error searching for user:');
+  }
+  return data || [];
 };

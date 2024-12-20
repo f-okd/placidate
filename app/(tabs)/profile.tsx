@@ -2,11 +2,8 @@ import Header from '@/components/Header';
 import ProfileHeader from '@/components/ProfileHeader';
 import ProfilePost from '@/components/ProfilePostPreview';
 import { useAuth } from '@/providers/AuthProvider';
-import {
-  getPostsCreatedByUser,
-  getUserFollowCounts,
-  TPosts,
-} from '@/utils/users';
+import { TPost } from '@/utils/posts';
+import { getPostsCreatedByUser, getUserFollowCounts } from '@/utils/users';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, FlatList, View } from 'react-native';
@@ -16,7 +13,7 @@ export default function ProfileScreen() {
   const { profile } = useAuth();
 
   const [loading, setLoading] = useState(true);
-  const [posts, setPosts] = useState<TPosts[]>([]);
+  const [posts, setPosts] = useState<TPost[]>([]);
   const [postCount, setPostCount] = useState<number>(0);
   const [followingCount, setFollowingCount] = useState<number>(0);
   const [followerCount, setFollowerCount] = useState<number>(0);
