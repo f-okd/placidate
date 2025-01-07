@@ -1,6 +1,6 @@
 import Header from '@/components/Header';
 import ProfileHeader from '@/components/ProfileHeader';
-import ProfilePost from '@/components/ProfilePostPreview';
+import PostPreview from '@/components/PostPreview';
 import { Profile, useAuth } from '@/providers/AuthProvider';
 import { TPost } from '@/utils/posts';
 import { getPostsCreatedByUser, getUserFollowCounts } from '@/utils/users';
@@ -90,7 +90,7 @@ export default function OtherUsersProfileScreen() {
       <FlatList
         data={posts}
         snapToStart
-        renderItem={({ item }) => <ProfilePost post={item}></ProfilePost>}
+        renderItem={({ item }) => <PostPreview post={item}></PostPreview>}
         className='w-full px-4'
       />
     </View>

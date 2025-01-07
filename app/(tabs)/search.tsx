@@ -1,5 +1,6 @@
+import PostPreview from '@/components/PostPreview';
 import UserSearchResult from '@/components/UserSearchResult';
-import { searchForPosts, TPost } from '@/utils/posts';
+import { searchForPosts, searchForPostsByTag, TPost } from '@/utils/posts';
 import { searchForUsers, TProfile } from '@/utils/users';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -60,6 +61,12 @@ export default function SearchScreen() {
         setfFetchedPosts(postsResult);
         console.log(postsResult);
         setLoading(false);
+      case SearchTerm.TAGS:
+        setLoading(true);
+        const postsByTagResult = await searchForPostsByTag(searchText);
+        setFetchedPostsByTag(postsByTagResult);
+        console.log(postsByTagResult);
+        setLoading(false);
       default:
         console.log('default search case');
     }
@@ -77,7 +84,7 @@ export default function SearchScreen() {
     <View className='flex-1 bg-white'>
       <View className='px-4 py-3 border-y border-gray-200 bg-white'>
         {/*Search Bar */}
-        <View className='flex-row items-center'>
+        <View className='flex-row items-center mb-2'>
           {/* Dropdown Button */}
           <TouchableOpacity
             onPress={() => setShowDropdown(true)}
@@ -105,7 +112,8 @@ export default function SearchScreen() {
             />
           </TouchableOpacity>
         </View>
-        {/*Display user search results when  */}
+
+        {/*Display user search results when user search type is toggled*/}
         {searchType === SearchTerm.USERS && fetchedUsers.length > 0 && (
           <FlatList
             data={fetchedUsers}
@@ -117,6 +125,24 @@ export default function SearchScreen() {
                 router={router}
               />
             )}
+          />
+        )}
+
+        {/*Display post search results when post search type is toggled*/}
+        {searchType === SearchTerm.POSTS && fetchedPosts.length > 0 && (
+          <FlatList
+            data={fetchedPosts}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => <PostPreview post={item}></PostPreview>}
+          />
+        )}
+
+        {/*Display post search results when post search type is toggled*/}
+        {searchType === SearchTerm.TAGS && fetchedPostsByTag.length > 0 && (
+          <FlatList
+            data={fetchedPostsByTag}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => <PostPreview post={item}></PostPreview>}
           />
         )}
       </View>

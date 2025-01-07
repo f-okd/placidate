@@ -52,3 +52,16 @@ export const searchForUsers = async (
   }
   return data || [];
 };
+
+export const getBookmarks = async (userId: string): Promise<TPost[]> => {
+  const { data, error } = await supabase
+    .from('bookmarks')
+    .select(`posts (*) `)
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error(`Error searching for user: ${userId}\'s bookmarks`);
+  }
+  return (data?.map((bookmark) => bookmark.posts) as TPost[]) || [];
+};

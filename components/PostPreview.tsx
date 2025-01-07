@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 
-export default function ProfilePost({ post }: { post: TPost }) {
+export default function PostPreview({ post }: { post: TPost }) {
   const router = useRouter();
 
   return (

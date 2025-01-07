@@ -58,14 +58,14 @@ export const searchForPostsByTag = async (
       .select(
         `
         *,
-        posts_tags!inner(
+        post_tags!inner(
           tags!inner(
             name
           )
         )
       `
       )
-      .ilike('posts_tags.tags.name', `%${searchTerm}%`);
+      .ilike('post_tags.tags.name', `%${searchTerm}%`);
 
     if (error) {
       throw error;
