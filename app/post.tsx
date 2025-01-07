@@ -7,6 +7,7 @@ import { getCommentsAndAuthors, TCommentsAndAuthors } from '@/utils/posts';
 import { supabase } from '@/utils/supabase/supabase';
 import {
   addComment,
+  deleteComment,
   likePost,
   postIsLikedByUser,
   unlikePost,
@@ -16,12 +17,14 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Image,
   KeyboardAvoidingView,
   Platform,
   Text,
   TextInput,
+  ToastAndroid,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -86,7 +89,7 @@ export default function ViewPostScreen() {
   };
 
   const loadComments = async (): Promise<void> => {
-    const comments = await getCommentsAndAuthors(String(post_id));
+    const comments = await getCommentsAndAuthors(profile.id, String(post_id));
     if (!comments) {
       return console.error('Error fetching comments');
     }
@@ -97,6 +100,27 @@ export default function ViewPostScreen() {
     await addComment(profile.id, String(post_id), text);
     setText('');
     await loadComments();
+  };
+
+  const handleDeleteComment = async (
+    commentToDelete: string
+  ): Promise<void> => {
+    const successfulDelete = await deleteComment(commentToDelete);
+    if (successfulDelete) {
+      const newComments = comments.filter(
+        (comment) => comment.id != commentToDelete
+      );
+      setComments(newComments);
+    } else {
+      if (Platform.OS === 'android') {
+        ToastAndroid.show(
+          'Error: Could not delete comment, try again later',
+          ToastAndroid.SHORT
+        );
+      } else {
+        Alert.alert('Error: Could not delete comment, try again later');
+      }
+    }
   };
 
   const setLikedAndSavedStatus = async (): Promise<void> => {
@@ -192,7 +216,7 @@ export default function ViewPostScreen() {
 
   return (
     <KeyboardAvoidingView
-      className='flex-1 bg-white'
+      className='flex-1 bg-white '
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
@@ -201,7 +225,9 @@ export default function ViewPostScreen() {
 
         <FlatList
           data={comments}
-          renderItem={({ item }) => <Comment comment={item} />}
+          renderItem={({ item }) => (
+            <Comment comment={item} handleDelete={handleDeleteComment} />
+          )}
           keyExtractor={(item) => item.id}
           ListHeaderComponent={renderHeader}
           contentContainerStyle={{ flexGrow: 1 }}

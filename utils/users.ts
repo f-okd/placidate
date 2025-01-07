@@ -46,7 +46,7 @@ export const searchForUsers = async (
   const { data, error } = await supabase
     .from('profiles')
     .select()
-    .like('username', `%${searchTerm}%`);
+    .ilike('username', `%${searchTerm}%`);
   if (error) {
     console.error('Error searching for user:');
   }

@@ -7,9 +7,11 @@ export type TPost = Tables<'posts'>;
 
 export type TCommentsAndAuthors = TComments & {
   profiles: TProfile | null;
+  deletable: boolean;
 };
 
 export const getCommentsAndAuthors = async (
+  currentlyAuthenticatedUser: string,
   post_id: string
 ): Promise<TCommentsAndAuthors[] | null> => {
   const { data, error } = await supabase
@@ -25,7 +27,12 @@ export const getCommentsAndAuthors = async (
     console.error(`Error fetching comments for post: ${post_id}`);
     return null;
   }
-  return data;
+  return data.map((commentAndProfileObject) => ({
+    ...commentAndProfileObject,
+    deletable:
+      commentAndProfileObject.profiles?.id == currentlyAuthenticatedUser ||
+      commentAndProfileObject.user_id == currentlyAuthenticatedUser,
+  }));
 };
 
 export const searchForPosts = async (
@@ -34,7 +41,7 @@ export const searchForPosts = async (
   const { data, error } = await supabase
     .from('posts')
     .select()
-    .like('body', `%${searchTerm}%`);
+    .ilike('title', `%${searchTerm}%`);
 
   if (error) {
     console.error('Error searching for a post:', error);
@@ -58,7 +65,7 @@ export const searchForPostsByTag = async (
         )
       `
       )
-      .like('posts_tags.tags.name', `%${searchTerm}%`);
+      .ilike('posts_tags.tags.name', `%${searchTerm}%`);
 
     if (error) {
       throw error;

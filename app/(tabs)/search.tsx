@@ -1,5 +1,5 @@
 import UserSearchResult from '@/components/UserSearchResult';
-import { TPost } from '@/utils/posts';
+import { searchForPosts, TPost } from '@/utils/posts';
 import { searchForUsers, TProfile } from '@/utils/users';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -34,13 +34,9 @@ export default function SearchScreen() {
   const [searchType, setSearchType] = useState<SearchTerm>(SearchTerm.POSTS);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  const [fetchedPostsBySearchValue, setfFetchedPostsBySearchValue] = useState<
-    TPost[]
-  >([]);
+  const [fetchedPosts, setfFetchedPosts] = useState<TPost[]>([]);
   const [fetchedPostsByTag, setFetchedPostsByTag] = useState<TPost[]>([]);
-  const [fetchedUsersBySearchValue, setFetchedUsersBySearchValue] = useState<
-    TProfile[]
-  >([]);
+  const [fetchedUsers, setFetchedUsers] = useState<TProfile[]>([]);
 
   useEffect(() => {
     for (const [key, value] of Object.entries(SearchTerm)) {
@@ -54,10 +50,16 @@ export default function SearchScreen() {
     switch (searchType) {
       case SearchTerm.USERS:
         setLoading(true);
-        const usersResult = await searchForUsers('use');
-        setFetchedUsersBySearchValue(usersResult);
+        const usersResult = await searchForUsers(searchText);
+        setFetchedUsers(usersResult);
         setLoading(false);
         break;
+      case SearchTerm.POSTS:
+        setLoading(true);
+        const postsResult = await searchForPosts(searchText);
+        setfFetchedPosts(postsResult);
+        console.log(postsResult);
+        setLoading(false);
       default:
         console.log('default search case');
     }
@@ -103,20 +105,20 @@ export default function SearchScreen() {
             />
           </TouchableOpacity>
         </View>
-        {searchType === SearchTerm.USERS &&
-          fetchedUsersBySearchValue.length > 0 && (
-            <FlatList
-              data={fetchedUsersBySearchValue}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <UserSearchResult
-                  id={item.id}
-                  username={item.username}
-                  router={router}
-                />
-              )}
-            />
-          )}
+        {/*Display user search results when  */}
+        {searchType === SearchTerm.USERS && fetchedUsers.length > 0 && (
+          <FlatList
+            data={fetchedUsers}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <UserSearchResult
+                id={item.id}
+                username={item.username}
+                router={router}
+              />
+            )}
+          />
+        )}
       </View>
 
       {/* Dropdown Modal */}

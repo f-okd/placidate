@@ -64,7 +64,7 @@ export default function HomeScreen() {
     useCallback(() => {
       getPosts();
 
-      // Optional: Setup real-time subscription for new posts
+      // Setup real-time subscription for new posts -- do i really want this
       const subscription = supabase
         .channel('posts')
         .on(
