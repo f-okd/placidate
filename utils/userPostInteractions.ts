@@ -79,6 +79,51 @@ export const unlikePost = async (
   }
 };
 
-export const bookmarkPost = async () => {};
+export const postIsBookmarkedByUser = async (
+  post_id: string,
+  user_id: string
+): Promise<boolean> => {
+  const { count, error } = await supabase
+    .from('bookmarks')
+    .select('*', { count: 'exact', head: true })
+    .eq('post_id', post_id)
+    .eq('user_id', user_id);
 
-export const unbookmarkPost = async () => {};
+  if (error) {
+    console.error(
+      `Error checking if post ${post_id} was bookmarked by user ${user_id}:`,
+      error.message
+    );
+    return false;
+  }
+
+  return count ? count > 0 : false;
+};
+
+export const bookmarkPost = async (userId: string, postId: string) => {
+  const { error } = await supabase.from('bookmarks').insert({
+    user_id: userId,
+    post_id: postId,
+  });
+
+  if (error) {
+    console.error(
+      `Error bookmarking post ${postId} for user ${userId}:`,
+      error
+    );
+  }
+};
+export const unbookmarkPost = async (userId: string, postId: string) => {
+  const { error } = await supabase
+    .from('bookmarks')
+    .delete()
+    .eq('user_id', userId)
+    .eq('post_id', postId);
+
+  if (error) {
+    console.error(
+      `Error removing bookmark of post ${postId} for user ${userId}:`,
+      error.message
+    );
+  }
+};

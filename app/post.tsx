@@ -7,9 +7,12 @@ import { getCommentsAndAuthors, TCommentsAndAuthors } from '@/utils/posts';
 import { supabase } from '@/utils/supabase/supabase';
 import {
   addComment,
+  bookmarkPost,
   deleteComment,
   likePost,
+  postIsBookmarkedByUser,
   postIsLikedByUser,
+  unbookmarkPost,
   unlikePost,
 } from '@/utils/userPostInteractions';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -40,7 +43,7 @@ export default function ViewPostScreen() {
   const [text, setText] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [liked, setLiked] = useState<boolean>(false);
-  const [saved, setSaved] = useState<boolean>(false);
+  const [bookmarked, setBookmarked] = useState<boolean>(false);
 
   const { profile } = useAuth();
   const router = useRouter();
@@ -58,7 +61,7 @@ export default function ViewPostScreen() {
     setLoading(true);
     getPost();
     loadComments();
-    setLikedAndSavedStatus();
+    setLikedAndBookmarkedStatus();
     setLoading(false);
   }, []);
 
@@ -123,10 +126,11 @@ export default function ViewPostScreen() {
     }
   };
 
-  const setLikedAndSavedStatus = async (): Promise<void> => {
+  const setLikedAndBookmarkedStatus = async (): Promise<void> => {
     const liked = await postIsLikedByUser(post_id, profile.id);
-    const saved = false; // update when functionality is added
+    const bookmarked = await postIsBookmarkedByUser(post_id, profile.id);
     setLiked(liked);
+    setBookmarked(bookmarked);
   };
 
   const handleLike = async () => {
@@ -138,6 +142,15 @@ export default function ViewPostScreen() {
     setLiked(false);
   };
 
+  const handleUnbookmark = async (): Promise<void> => {
+    await unbookmarkPost(profile.id, post_id);
+    setBookmarked(false);
+  };
+  const handleBookmark = async (): Promise<void> => {
+    await bookmarkPost(profile.id, post_id);
+    setBookmarked(true);
+  };
+
   if (loading) {
     return (
       <View className='flex-1 bg-white items-center justify-center'>
@@ -145,6 +158,7 @@ export default function ViewPostScreen() {
       </View>
     );
   }
+
   if (!post) {
     return (
       <View>
@@ -203,10 +217,13 @@ export default function ViewPostScreen() {
 
       <View className='px-4 py-2'>
         <ActionBar
-          saved={saved}
+          authorId={post.author_id}
+          bookmarked={bookmarked}
           liked={liked}
           onLike={handleLike}
           onUnlike={handleUnlike}
+          onBookmark={handleBookmark}
+          onUnbookmark={handleUnbookmark}
         />
       </View>
 

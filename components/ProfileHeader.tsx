@@ -1,30 +1,63 @@
 import { View, Text, Image, Button, TouchableOpacity } from 'react-native';
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { TProfile } from '@/utils/posts';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
+import {
+  followUser,
+  unfollowUser,
+  userIsFollowing,
+} from '@/utils/userUserInteractions';
 
 interface IProfileHeader {
   profile: TProfile;
   currentlyLoggedInUser?: boolean;
   postCount: number;
+  isFollowing: boolean;
   followerCount: number;
   followingCount: number;
+  onFollow: React.Dispatch<React.SetStateAction<boolean>>;
+  handleSetFollowerCount: React.Dispatch<React.SetStateAction<number>>;
 }
 
 export default function ProfileHeader({
   profile,
   currentlyLoggedInUser = false,
   postCount,
+  isFollowing,
   followerCount,
   followingCount,
+  onFollow,
+  handleSetFollowerCount,
 }: IProfileHeader) {
   const router = useRouter();
+  const { profile: activeProfile } = useAuth();
+
+  const handleFollow = async () => {
+    if (!activeProfile) return;
+    try {
+      await followUser(activeProfile.id, profile.id);
+      onFollow(true);
+      handleSetFollowerCount((prev) => prev + 1);
+    } catch (error) {
+      console.error(`Error following user ${profile.id}:`, error);
+    }
+  };
+
+  const handleUnfollow = async () => {
+    if (!activeProfile) return;
+    try {
+      await unfollowUser(activeProfile.id, profile.id);
+      onFollow(false);
+      handleSetFollowerCount((prev) => prev - 1);
+    } catch (error) {
+      console.error(`Error unfollowing user ${profile.id}:`, error);
+    }
+  };
 
   return (
     <View className='border-b pb-5 border-gray-200 px-10'>
-      {/*Section for profile picture and post, follower, following counts */}
-      <View className='flex-row items-center justify-between  '>
+      <View className='flex-row items-center justify-between'>
         <Image
           src={'https://picsum.photos/200'}
           style={profilePictureImageStyle}
@@ -43,31 +76,23 @@ export default function ProfileHeader({
         </View>
       </View>
 
-      {/*Section for follow/unfollow or edit profile button*/}
       <View className='pt-2'>
-        {currentlyLoggedInUser ? (
+        <View className='flex-row gap-2'>
           <TouchableOpacity
-            className='bg-gray-800 w-[24%] p-2 rounded-lg'
-            onPress={() => router.push('/editProfile')}
+            className={'bg-gray-800 w-[22%] p-2 rounded-lg'}
+            onPress={isFollowing ? handleUnfollow : handleFollow}
           >
-            <Text className='text-white'>Edit profile</Text>
+            <Text className='text-white text-center'>
+              {isFollowing ? 'Unfollow' : 'Follow'}
+            </Text>
           </TouchableOpacity>
-        ) : (
-          <View className='flex-row gap-2'>
-            <TouchableOpacity
-              className='bg-gray-800 w-[20%] p-2 rounded-lg'
-              onPress={() => router.push('/editProfile')}
-            >
-              <Text className='text-white'>Follow</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              className='bg-gray-800 w-[22%] p-2 rounded-lg'
-              onPress={() => router.push('/editProfile')}
-            >
-              <Text className='text-white'>Message</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+          <TouchableOpacity
+            className='bg-gray-800 w-[22%] p-2 rounded-lg'
+            onPress={() => router.push('/inbox')}
+          >
+            <Text className='text-white text-center'>Message</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );

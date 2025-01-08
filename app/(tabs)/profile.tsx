@@ -1,16 +1,20 @@
 import Header from '@/components/Header';
-import ProfileHeader from '@/components/ProfileHeader';
+import OwnProfileHeader from '@/components/OwnProfileHeader';
 import PostPreview from '@/components/PostPreview';
 import { useAuth } from '@/providers/AuthProvider';
 import { TPost } from '@/utils/posts';
-import { getPostsCreatedByUser, getUserFollowCounts } from '@/utils/users';
+import {
+  getPostsCreatedByUser,
+  getUserFollowCounts,
+  TProfile,
+} from '@/utils/users';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, FlatList, View } from 'react-native';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { profile } = useAuth();
+  const { profile: uncastedProfile } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState<TPost[]>([]);
@@ -18,12 +22,7 @@ export default function ProfileScreen() {
   const [followingCount, setFollowingCount] = useState<number>(0);
   const [followerCount, setFollowerCount] = useState<number>(0);
 
-  // Early return if no profile
-  if (!profile) {
-    console.error('Error showing post: Couldnt load profile from auth context');
-    router.back();
-    return null; // Return null for type safety
-  }
+  const profile = uncastedProfile as TProfile;
 
   useFocusEffect(
     useCallback(() => {
@@ -70,9 +69,7 @@ export default function ProfileScreen() {
   return (
     <View className='flex-1 bg-white'>
       <Header title={profile.username} showBackIcon isProfilePage />
-      <ProfileHeader
-        profile={profile}
-        currentlyLoggedInUser
+      <OwnProfileHeader
         postCount={postCount}
         followingCount={followingCount}
         followerCount={followerCount}
