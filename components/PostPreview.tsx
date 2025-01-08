@@ -17,12 +17,3 @@ export default function PostPreview({ post }: { post: TPost }) {
     </View>
   );
 }
-
-const profilePictureImageStyle = {
-  width: 40,
-  height: 40,
-  borderRadius: 20,
-  borderWidth: 2,
-  borderColor: 'black',
-  margin: 4,
-};

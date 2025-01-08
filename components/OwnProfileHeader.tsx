@@ -39,12 +39,18 @@ export default function OwnProfileHeader({
       </View>
 
       {/*Section for follow/unfollow or edit profile button*/}
-      <View className='pt-2'>
+      <View className='pt-2 gap-2 flex-row'>
         <TouchableOpacity
           className='bg-gray-800 w-[24%] p-2 rounded-lg'
           onPress={() => router.push('/editProfile')}
         >
           <Text className='text-white'>Edit profile</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          className='bg-gray-800 w-[30%] p-2 rounded-lg'
+          onPress={() => router.push('/bookmarks')}
+        >
+          <Text className='text-white'>Bookmarks</Text>
         </TouchableOpacity>
       </View>
     </View>
