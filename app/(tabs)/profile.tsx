@@ -55,7 +55,7 @@ export default function ProfileScreen() {
       };
 
       loadProfileData();
-    }, [profile.id])
+    }, [profile])
   );
 
   if (loading) {

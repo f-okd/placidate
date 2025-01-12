@@ -6,7 +6,7 @@ import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 export default function LoginScreen() {
   const router = useRouter();
   const [email, setEmail] = useState('a@a.com');
-  const [password, setPassword] = useState('password123');
+  const [password, setPassword] = useState('notpassword');
   const { signIn } = useAuth();
 
   return (

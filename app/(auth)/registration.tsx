@@ -6,10 +6,10 @@ import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function RegistrationScreen() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [email, setEmail] = useState('a@a.com');
+  const [username, setUsername] = useState('testAccount');
+  const [password, setPassword] = useState('password123');
+  const [confirmPassword, setConfirmPassword] = useState('password123');
 
   const { signUp } = useAuth();
 

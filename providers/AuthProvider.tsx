@@ -11,6 +11,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, username: string) => Promise<void>;
   signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType>({
@@ -18,6 +19,7 @@ export const AuthContext = createContext<AuthContextType>({
   signIn: async () => {},
   signUp: async () => {},
   signOut: async () => {},
+  refreshProfile: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -44,6 +46,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     setProfile(profile);
     router.push('/(tabs)');
+  };
+
+  const refreshProfile = async (): Promise<void> => {
+    const prof = await getProfile(String(profile?.id));
+
+    if (!prof)
+      return console.error(
+        'Error signing in: Could not fetch profile for user ID'
+      );
+
+    setProfile(prof);
+    router.push('/(tabs)/profile');
   };
 
   const signUp = async (email: string, password: string, username: string) => {
@@ -83,7 +97,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ profile, signIn, signUp, signOut }}>
+    <AuthContext.Provider
+      value={{ profile, signIn, signUp, signOut, refreshProfile }}
+    >
       {children}
     </AuthContext.Provider>
   );
