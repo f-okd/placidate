@@ -3,7 +3,11 @@ import Comment from '@/components/Comment';
 import Header from '@/components/Header';
 import Tag from '@/components/Tag';
 import { useAuth } from '@/providers/AuthProvider';
-import { getCommentsAndAuthors, TCommentsAndAuthors } from '@/utils/posts';
+import {
+  deletePost,
+  getCommentsAndAuthors,
+  TCommentsAndAuthors,
+} from '@/utils/posts';
 import { supabase } from '@/utils/supabase/supabase';
 import {
   addComment,
@@ -32,6 +36,7 @@ import {
   View,
 } from 'react-native';
 import { TGetPosts } from './(tabs)';
+import { showToast } from '@/utils/helpers';
 
 interface IViewPostProps {
   post: TGetPosts;
@@ -115,14 +120,7 @@ export default function ViewPostScreen() {
       );
       setComments(newComments);
     } else {
-      if (Platform.OS === 'android') {
-        ToastAndroid.show(
-          'Error: Could not delete comment, try again later',
-          ToastAndroid.SHORT
-        );
-      } else {
-        Alert.alert('Error: Could not delete comment, try again later');
-      }
+      showToast(" 'Error: Could not delete comment, try again later'");
     }
   };
 
@@ -149,6 +147,16 @@ export default function ViewPostScreen() {
   const handleBookmark = async (): Promise<void> => {
     await bookmarkPost(profile.id, post_id);
     setBookmarked(true);
+  };
+
+  const handleDelete = async (): Promise<void> => {
+    const success = await deletePost(post_id);
+    if (!success) {
+      showToast(`Failed to delete post, please try again later`);
+    } else {
+      showToast('Post successfully deleted');
+      router.replace('/(tabs)');
+    }
   };
 
   if (loading) {
@@ -209,7 +217,12 @@ export default function ViewPostScreen() {
         <View className='px-4 py-2'>
           <View className='flex-row flex-wrap gap-1'>
             {post.post_tags?.map((tag) => (
-              <Tag key={tag.tag_id} tagName={tag.tags?.name ?? ''} />
+              <Tag
+                key={tag.tag_id}
+                isForNewPost={false}
+                onRemoveTag={() => {}}
+                tagName={tag.tags?.name ?? ''}
+              />
             ))}
           </View>
         </View>
@@ -224,6 +237,7 @@ export default function ViewPostScreen() {
           onUnlike={handleUnlike}
           onBookmark={handleBookmark}
           onUnbookmark={handleUnbookmark}
+          onDelete={handleDelete}
         />
       </View>
 

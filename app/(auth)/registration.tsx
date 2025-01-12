@@ -1,15 +1,8 @@
 import { useAuth } from '@/providers/AuthProvider';
+import { showToast } from '@/utils/helpers';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import {
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  Platform,
-  ToastAndroid,
-  Alert,
-} from 'react-native';
+import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function RegistrationScreen() {
   const router = useRouter();
@@ -25,14 +18,7 @@ export default function RegistrationScreen() {
       return signUp(email, password, username);
     }
 
-    if (Platform.OS === 'android') {
-      ToastAndroid.show(
-        'Error: Passwords must be the same',
-        ToastAndroid.SHORT
-      );
-    } else {
-      Alert.alert('Error: Passwords must be the same');
-    }
+    showToast('Error: Passwords must be the same');
   };
 
   return (

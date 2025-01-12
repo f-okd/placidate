@@ -14,6 +14,7 @@ interface IActionBar {
   onUnlike: () => Promise<void>;
   onBookmark: () => Promise<void>;
   onUnbookmark: () => Promise<void>;
+  onDelete: () => Promise<void>;
 }
 
 export default function ActionBar({
@@ -24,6 +25,7 @@ export default function ActionBar({
   onUnlike,
   onBookmark,
   onUnbookmark,
+  onDelete,
 }: IActionBar) {
   const [modalVisible, setModalVisible] = useState(false);
   const { profile } = useAuth();
@@ -91,6 +93,16 @@ export default function ActionBar({
                 <Ionicons name='ban-outline' size={24} color='black' />
                 <Text className='text-lg'>Block User</Text>
               </TouchableOpacity>
+
+              {authorId == profile?.id && (
+                <TouchableOpacity
+                  className='flex-row items-center gap-2 p-2'
+                  onPress={onDelete}
+                >
+                  <Ionicons name='trash-outline' size={24} color='black' />
+                  <Text className='text-lg'>Delete post</Text>
+                </TouchableOpacity>
+              )}
 
               <TouchableOpacity
                 className='flex-row items-center justify-center p-2 mt-2'
