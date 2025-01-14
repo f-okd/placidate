@@ -4,7 +4,7 @@ Social Media Mobile Application for short form written content
 
 ## Prerequisites
 
-Development and testing was conducted using a Windows computer and an Android mobile phone, iOS performance/compatibility is not _guaranteed_.
+Development and testing was conducted using a Windows computer and an Android mobile phone, iOS performance/compatibility is not _guaranteed_, but it should be fine due to the lack of OS native functionality in this application.
 
 You need to install Node(^v18.0), the Java Development Kit (JDK) and Android Studio to use an android emulator.
 
