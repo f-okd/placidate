@@ -42,9 +42,7 @@ export default function Header({
         )}
 
         {isProfilePage && (
-          <TouchableOpacity
-            onPress={() => console.log('Navigate to settings page')}
-          >
+          <TouchableOpacity onPress={() => router.push('/settings')}>
             <Ionicons name='settings' size={22} />
           </TouchableOpacity>
         )}

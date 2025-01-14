@@ -91,9 +91,9 @@ export const unblockUser = async (
     .eq('blocked_id', blockedUserId);
 
   if (error) {
-    console.error(
-      `Error unblocking user ${blockedUserId} by user ${blockerUserId}:`,
-      error.message
+    throw new Error(
+      `Error unblocking user ${blockedUserId} by user ${blockerUserId}:` +
+        error.message
     );
   }
 };

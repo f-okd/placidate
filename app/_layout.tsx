@@ -29,6 +29,8 @@ export default function RootLayout() {
       <Stack>
         <Stack.Screen name='(auth)' options={{ headerShown: false }} />
         <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
+        <Stack.Screen name='settings' options={{ headerShown: false }} />
+        <Stack.Screen name='blockedUsers' options={{ headerShown: false }} />
         <Stack.Screen name='bookmarks' options={{ headerShown: false }} />
         <Stack.Screen name='editProfile' options={{ headerShown: false }} />
         <Stack.Screen name='post' options={{ headerShown: false }} />

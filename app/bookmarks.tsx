@@ -46,7 +46,7 @@ export default function Bookmarks() {
 
   return (
     <View className='flex-1 bg-white'>
-      <Header title='Bookmarks' showNotificationIcon={true} showBackIcon />
+      <Header title='Bookmarks' showNotificationIcon={false} showBackIcon />
       {bookmarkedPosts.length > 0 ? (
         <FlatList
           data={bookmarkedPosts}

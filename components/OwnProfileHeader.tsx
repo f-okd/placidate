@@ -46,12 +46,6 @@ export default function OwnProfileHeader({
         >
           <Text className='text-white'>Edit profile</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          className='bg-gray-800 w-[30%] p-2 rounded-lg'
-          onPress={() => router.push('/bookmarks')}
-        >
-          <Text className='text-white'>Bookmarks</Text>
-        </TouchableOpacity>
       </View>
     </View>
   );

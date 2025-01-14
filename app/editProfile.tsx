@@ -1,21 +1,16 @@
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  TextInput,
-  Alert,
-  ActivityIndicator,
-} from 'react-native';
-import React, { useState } from 'react';
-import { useRouter } from 'expo-router';
+import Header from '@/components/Header';
 import { useAuth } from '@/providers/AuthProvider';
-import {
-  changePassword,
-  changeUsername,
-  deleteAccount,
-  TProfile,
-} from '@/utils/users';
 import { showToast } from '@/utils/helpers';
+import { changeUsername, TProfile, updateBio } from '@/utils/users';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import {
+  ActivityIndicator,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 export default function EditProfile() {
   const router = useRouter();
@@ -23,13 +18,12 @@ export default function EditProfile() {
   const activeProfile = uncastedProfile as TProfile;
 
   const [newUsername, setNewUsername] = useState(activeProfile?.username || '');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [newBio, setNewBio] = useState(activeProfile?.bio || '');
   const [loading, setLoading] = useState(false);
 
   const handleUsernameChange = async () => {
     if (newUsername.trim() === activeProfile.username) {
-      showToast('Please enter a different username');
+      showToast('Please enter a new username');
       return;
     }
 
@@ -50,67 +44,27 @@ export default function EditProfile() {
     }
   };
 
-  const handlePasswordChange = async () => {
-    if (newPassword.length < 6) {
-      showToast('Password must be at least 6 characters long');
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      showToast('Passwords do not match');
-      return;
-    }
-
+  const handleBioChange = async () => {
     setLoading(true);
     try {
-      await changePassword(newPassword);
-      showToast('Password updated successfully');
-      setNewPassword('');
-      setConfirmPassword('');
+      await updateBio(activeProfile.id, newBio.trim());
+      await refreshProfile();
+      showToast('Username updated successfully');
     } catch (error) {
-      showToast('Failed to update password');
+      showToast('Failed to update username');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDeleteAccount = async () => {
-    Alert.alert(
-      'Delete Account',
-      'Are you sure you want to delete your account? This action cannot be undone.',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            setLoading(true);
-            try {
-              const success = await deleteAccount(activeProfile.id);
-              if (success) {
-                setLoading(false);
-                router.replace('/');
-              }
-            } catch (error) {
-              setLoading(false);
-              showToast('Failed to delete account. Try again later');
-            } finally {
-              setLoading(false);
-            }
-          },
-        },
-      ]
-    );
-  };
-
   return (
     <View className='flex-1 bg-white'>
-      <View className='px-4 py-6'>
-        <Text className='text-2xl font-bold mb-6'>Edit Profile</Text>
-
+      <Header
+        title='Edit Profile'
+        showBackIcon={false}
+        showNotificationIcon={false}
+      />
+      <View className='px-4 pb-6'>
         {/* Username Section */}
         <View className='mb-6'>
           <Text className='text-gray-600 mb-2'>Username</Text>
@@ -131,43 +85,26 @@ export default function EditProfile() {
           </TouchableOpacity>
         </View>
 
-        {/* Password Section */}
+        {/* Bio Section */}
         <View className='mb-6'>
-          <Text className='text-gray-600 mb-2'>Change Password</Text>
+          <Text className='text-gray-600 mb-2'>Profile Bio</Text>
           <TextInput
-            className='border border-gray-300 rounded-lg p-3 mb-2'
-            value={newPassword}
-            onChangeText={setNewPassword}
-            placeholder='Enter new password'
-            secureTextEntry
-          />
-          <TextInput
-            className='border border-gray-300 rounded-lg p-3 mb-2'
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            placeholder='Confirm new password'
-            secureTextEntry
+            className='border border-gray-300 rounded-lg p-3 mb-2 min-h-[200]'
+            value={newBio}
+            onChangeText={setNewBio}
+            placeholder='Enter new profile bio'
+            textAlignVertical='top'
+            multiline
+            numberOfLines={5}
+            maxLength={200}
           />
           <TouchableOpacity
             className='bg-purple-200 rounded-lg p-3'
-            onPress={handlePasswordChange}
+            onPress={handleBioChange}
             disabled={loading}
           >
             <Text className='text-white text-center font-semibold'>
-              Update Password
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Delete Account Section */}
-        <View className='mt-8'>
-          <TouchableOpacity
-            className='bg-red-500 rounded-lg p-3'
-            onPress={handleDeleteAccount}
-            disabled={loading}
-          >
-            <Text className='text-white text-center font-semibold'>
-              Delete Account
+              Update Bio
             </Text>
           </TouchableOpacity>
         </View>

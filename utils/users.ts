@@ -87,22 +87,35 @@ export const changeUsername = async (
       .eq('id', userId);
 
     if (error) {
-      console.error('Error changing username:', {
-        operation: 'change_username',
-        error,
-        userId,
-        attemptedUsername: newUsername,
-      });
+      console.error('Error changing username:', error);
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error('Unexpected error in changeUsername:', {
-      operation: 'change_username',
-      error,
-      userId,
-    });
+    console.error('Unexpected error in changeUsername:', error);
+    return false;
+  }
+};
+
+export const updateBio = async (
+  userId: string,
+  newBio: string
+): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ bio: newBio })
+      .eq('id', userId);
+
+    if (error) {
+      console.error('Error changing bio:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Unexpected error in updateBio function:', error);
     return false;
   }
 };

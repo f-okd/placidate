@@ -8,7 +8,7 @@ Development and testing was conducted using a Windows computer and an Android mo
 
 You need to install Node(^v18.0), the Java Development Kit (JDK) and Android Studio to use an android emulator.
 
-Follow these instructions for the best results: [React Native | Setup Environment](https://reactnative.dev/docs/set-up-your-environment)
+Follow **ALL** these instructions for the best results: [React Native | Setup Environment](https://reactnative.dev/docs/set-up-your-environment)
 
 ## How to run
 
