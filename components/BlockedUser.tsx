@@ -28,7 +28,7 @@ export default function BlockedUser({ profile, onUnblock }: IBlockedUser) {
         onPress={() => onUnblock(profile.id)}
         className='ml-4 p-2'
       >
-        <Ionicons name='trash-outline' size={24} color='black' />
+        <Ionicons name='close-circle-outline' size={24} color='black' />
       </TouchableOpacity>
     </View>
   );

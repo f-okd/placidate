@@ -3,7 +3,8 @@ import { TPost } from './posts';
 import { supabase } from './supabase/supabase';
 import { Tables } from './supabase/types';
 
-const API_BASE_URL = 'http://10.0.2.2:8000';
+const PLACIDATE_SERVER_BASE_URL = 'http://10.0.2.2:8000';
+const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
 
 interface ApiError {
   error: string;
@@ -147,12 +148,15 @@ export const changePassword = async (newPassword: string): Promise<boolean> => {
 
 export const deleteAccount = async (userId: string): Promise<boolean> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/users/${userId}/delete`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await fetch(
+      `${PLACIDATE_SERVER_BASE_URL}/api/users/${userId}/delete`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -165,4 +169,54 @@ export const deleteAccount = async (userId: string): Promise<boolean> => {
     console.error('Error:', error);
     return false;
   }
+};
+
+export const saveImage = async (
+  user_id: string,
+  imageUri: string
+): Promise<boolean> => {
+  // 1. Store Image in storage bucket
+  const formData = new FormData();
+  // get file name
+  const fileName = imageUri?.split('/').pop();
+  // get extension + set image type
+  const type = `image/${fileName?.split('/').pop()}`;
+  formData.append('file', {
+    uri: imageUri,
+    type,
+    name: fileName as string,
+  });
+
+  // Hard code file name makes it easier to delete when deleting account
+  const fileNameToSaveAs: string = `avatar-${user_id}`;
+
+  const { error: avatarDeleteError } = await supabase.storage
+    .from('avatars')
+    .remove([`avatar-${user_id}`]);
+
+  if (avatarDeleteError) {
+    throw new Error(
+      `Error deleting user: ${user_id}'s existing avatar, ${avatarDeleteError.message}`
+    );
+  }
+
+  const { error: storageError } = await supabase.storage
+    .from('avatars')
+    .upload(fileNameToSaveAs, formData);
+
+  if (storageError) throw new Error(storageError.message);
+
+  // 2. Update avatar reference in the user's record after successfully uploading image
+  const { error } = await supabase
+    .from('profiles')
+    .update({
+      avatar_url: `${SUPABASE_URL}/storage/v1/object/public/avatars/${fileNameToSaveAs}`,
+    })
+    .eq('id', user_id);
+
+  if (error)
+    throw new Error(
+      `Error updating avatar referece for user: ${user_id} \n ${error.message}`
+    );
+  return true;
 };

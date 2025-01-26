@@ -122,6 +122,7 @@ export default function SearchScreen() {
               <UserSearchResult
                 id={item.id}
                 username={item.username}
+                avatarUrl={item.avatar_url}
                 router={router}
               />
             )}

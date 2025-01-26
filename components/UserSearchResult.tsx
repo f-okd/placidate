@@ -6,12 +6,14 @@ import { useAuth } from '@/providers/AuthProvider';
 interface IUserSearchResult {
   id: string;
   username: string;
+  avatarUrl: string | null;
   router: Router;
 }
 
 export default function UserSearchResult({
   id,
   username,
+  avatarUrl,
   router,
 }: IUserSearchResult) {
   const { profile: currentlyLoggedInUser } = useAuth();
@@ -30,7 +32,11 @@ export default function UserSearchResult({
         onPress={() => navigateToProfile()}
       >
         <Image
-          src={'https://picsum.photos/200'}
+          source={
+            avatarUrl
+              ? { uri: avatarUrl }
+              : require('@/assets/images/default-avatar.jpg')
+          }
           style={profilePictureImageStyle}
         />
         <Text className='p-2 font-bold'>{username}</Text>

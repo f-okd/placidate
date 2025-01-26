@@ -13,8 +13,12 @@ export default function Post({ post }: { post: TGetPosts[number] }) {
 
   const router = useRouter();
   const {
-    profiles: { id, username },
+    profiles: { id, username, avatar_url },
   } = post;
+
+  const imageToDisplay = avatar_url
+    ? { uri: avatar_url }
+    : require('@/assets/images/default-avatar.jpg');
 
   return (
     <View className='border m-1'>
@@ -22,10 +26,7 @@ export default function Post({ post }: { post: TGetPosts[number] }) {
         className='flex-row items-center border-b border-black'
         onPress={() => router.push(`/user?user_id=${id}`)}
       >
-        <Image
-          src={'https://picsum.photos/200'}
-          style={profilePictureImageStyle}
-        />
+        <Image source={imageToDisplay} style={profilePictureImageStyle} />
         <Text className='p-2 font-bold'>{username}</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => router.push(`/post?post_id=${post.id}`)}>

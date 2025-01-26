@@ -3,19 +3,14 @@ import React from 'react';
 
 interface ITag {
   tagName: string;
-  isForNewPost: boolean | undefined;
-  onRemoveTag: (() => void) | ((tag: string) => void);
+  onRemoveTag?: (() => void) | ((tag: string) => void);
 }
-export default function Tag({
-  tagName,
-  isForNewPost = false,
-  onRemoveTag,
-}: ITag) {
+export default function Tag({ tagName, onRemoveTag }: ITag) {
   return (
     <TouchableOpacity
       key={tagName}
       className='bg-gray-200 rounded-md px-1 py-[0.5]'
-      onPress={isForNewPost ? () => onRemoveTag(tagName) : () => {}}
+      onPress={onRemoveTag ? () => onRemoveTag(tagName) : () => {}}
     >
       <Text>{tagName}</Text>
     </TouchableOpacity>

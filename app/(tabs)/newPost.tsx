@@ -63,12 +63,16 @@ export default function CreateNewPostScreen() {
   const handleCreatePost = () => {
     if (tags.length < 3) {
       showToast('Error: You need at least 3 tags to create a post');
+      return;
     } else if (tags.length > 10) {
       showToast('Error: You can not add more than 10 tags to a post');
+      return;
     } else if (!title) {
       showToast('Error: You need to add a title to create a post');
+      return;
     } else if (!body) {
       showToast('Error: You need to add content to the post');
+      return;
     }
     createPost(
       activeProfile.id,
@@ -156,12 +160,8 @@ export default function CreateNewPostScreen() {
         />
         <Text className='mt-4 mb-2 text-base'>
           Tags:{' '}
-          {tags.map((tag) => (
-            <Tag
-              tagName={tag}
-              isForNewPost={true}
-              onRemoveTag={handleRemoveTag}
-            />
+          {tags.map((tag, index) => (
+            <Tag key={index} tagName={tag} onRemoveTag={handleRemoveTag} />
           ))}
         </Text>
 

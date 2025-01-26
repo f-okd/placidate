@@ -1,8 +1,9 @@
 import Header from '@/components/Header';
 import { useAuth } from '@/providers/AuthProvider';
 import { showToast } from '@/utils/helpers';
-import { changeUsername, TProfile, updateBio } from '@/utils/users';
+import { changeUsername, saveImage, TProfile, updateBio } from '@/utils/users';
 import { useRouter } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
@@ -10,7 +11,11 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Image,
+  StyleSheet,
 } from 'react-native';
+
+const FormData = global.FormData;
 
 export default function EditProfile() {
   const router = useRouter();
@@ -20,6 +25,38 @@ export default function EditProfile() {
   const [newUsername, setNewUsername] = useState(activeProfile?.username || '');
   const [newBio, setNewBio] = useState(activeProfile?.bio || '');
   const [loading, setLoading] = useState(false);
+  const [image, setImage] = useState<string | null>(null);
+
+  /* Display the active profile's avatar if they have set a profile picture
+      If they don't have a profile picture and have not just uploaded a new avatar, display the default avatar
+      If they have just uploaded a new avatar, display that image 
+  */
+  const uploadedImageOrDefault = image
+    ? image
+    : require('@/assets/images/default-avatar.jpg');
+
+  const imageToDisplay = activeProfile.avatar_url
+    ? { uri: activeProfile.avatar_url }
+    : uploadedImageOrDefault;
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      cameraType: ImagePicker.CameraType.front,
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets[0].fileName) {
+      const photo = result.assets[0];
+      setImage(photo.uri);
+      await saveImage(activeProfile.id, photo.uri);
+      await refreshProfile();
+    } else {
+      showToast('Error uploading your profile picture');
+    }
+  };
 
   const handleUsernameChange = async () => {
     if (newUsername.trim() === activeProfile.username) {
@@ -65,6 +102,27 @@ export default function EditProfile() {
         showNotificationIcon={false}
       />
       <View className='px-4 pb-6'>
+        {/*Avatar section */}
+        <View className='mb-6 items-center'>
+          {image ? (
+            <Image
+              source={{ uri: image }}
+              className='w-[150] h-[150] rounded-full'
+            />
+          ) : (
+            <Image
+              source={imageToDisplay}
+              className='w-[150] h-[150] rounded-full'
+            />
+          )}
+          <TouchableOpacity
+            className='text-xl mt-1 text-gray-600 mb-2'
+            onPress={pickImage}
+          >
+            <Text>Upload new avatar</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Username Section */}
         <View className='mb-6'>
           <Text className='text-gray-600 mb-2'>Username</Text>
@@ -130,3 +188,24 @@ export default function EditProfile() {
     </View>
   );
 }
+
+const editProfilePictureImageStyle = {
+  width: 100,
+  height: 100,
+  borderRadius: 20,
+  borderWidth: 2,
+  borderColor: 'black',
+  margin: 4,
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  image: {
+    width: 200,
+    height: 200,
+  },
+});

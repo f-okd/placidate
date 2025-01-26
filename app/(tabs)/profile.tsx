@@ -10,7 +10,12 @@ import {
 } from '@/utils/users';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, FlatList, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  ImageSourcePropType,
+  View,
+} from 'react-native';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -73,6 +78,7 @@ export default function ProfileScreen() {
         postCount={postCount}
         followingCount={followingCount}
         followerCount={followerCount}
+        avatar={profile.avatar_url as string}
       />
       <FlatList
         data={posts}

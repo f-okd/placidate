@@ -1,18 +1,26 @@
 import { TProfile } from '@/utils/posts';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Image,
+  ImageSourcePropType,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 interface IProfileHeader {
   postCount: number;
   followerCount: number;
   followingCount: number;
+  avatar: string;
 }
 
 export default function OwnProfileHeader({
   postCount,
   followerCount,
   followingCount,
+  avatar,
 }: IProfileHeader) {
   const router = useRouter();
 
@@ -20,10 +28,7 @@ export default function OwnProfileHeader({
     <View className='border-b pb-5 border-gray-200 px-10'>
       {/*Section for profile picture and post, follower, following counts */}
       <View className='flex-row items-center justify-between  '>
-        <Image
-          src={'https://picsum.photos/200'}
-          style={profilePictureImageStyle}
-        />
+        <Image src={avatar} style={profilePictureImageStyle} />
         <View>
           <Text className='font-bold text-xl'>{followerCount}</Text>
           <Text>Followers</Text>

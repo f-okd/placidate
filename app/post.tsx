@@ -7,6 +7,7 @@ import {
   deletePost,
   getCommentsAndAuthors,
   TCommentsAndAuthors,
+  TProfile,
 } from '@/utils/posts';
 import { supabase } from '@/utils/supabase/supabase';
 import {
@@ -50,17 +51,12 @@ export default function ViewPostScreen() {
   const [liked, setLiked] = useState<boolean>(false);
   const [bookmarked, setBookmarked] = useState<boolean>(false);
 
-  const { profile } = useAuth();
   const router = useRouter();
   const params = useLocalSearchParams();
   const post_id = params.post_id as string;
 
-  if (!profile) {
-    console.error(
-      'Error showing post: Couldnt load profile from  auth context'
-    );
-    return router.back();
-  }
+  const { profile: uncastedProfile } = useAuth();
+  const activeProfile = uncastedProfile as TProfile;
 
   useEffect(() => {
     setLoading(true);
@@ -97,7 +93,10 @@ export default function ViewPostScreen() {
   };
 
   const loadComments = async (): Promise<void> => {
-    const comments = await getCommentsAndAuthors(profile.id, String(post_id));
+    const comments = await getCommentsAndAuthors(
+      activeProfile.id,
+      String(post_id)
+    );
     if (!comments) {
       return console.error('Error fetching comments');
     }
@@ -105,7 +104,7 @@ export default function ViewPostScreen() {
   };
 
   const handleAddComment = async (): Promise<void> => {
-    await addComment(profile.id, String(post_id), text);
+    await addComment(activeProfile.id, String(post_id), text);
     setText('');
     await loadComments();
   };
@@ -125,27 +124,27 @@ export default function ViewPostScreen() {
   };
 
   const setLikedAndBookmarkedStatus = async (): Promise<void> => {
-    const liked = await postIsLikedByUser(post_id, profile.id);
-    const bookmarked = await postIsBookmarkedByUser(post_id, profile.id);
+    const liked = await postIsLikedByUser(post_id, activeProfile.id);
+    const bookmarked = await postIsBookmarkedByUser(post_id, activeProfile.id);
     setLiked(liked);
     setBookmarked(bookmarked);
   };
 
   const handleLike = async () => {
-    await likePost(post_id, profile.id);
+    await likePost(post_id, activeProfile.id);
     setLiked(true);
   };
   const handleUnlike = async () => {
-    await unlikePost(post_id, profile.id);
+    await unlikePost(post_id, activeProfile.id);
     setLiked(false);
   };
 
   const handleUnbookmark = async (): Promise<void> => {
-    await unbookmarkPost(profile.id, post_id);
+    await unbookmarkPost(activeProfile.id, post_id);
     setBookmarked(false);
   };
   const handleBookmark = async (): Promise<void> => {
-    await bookmarkPost(profile.id, post_id);
+    await bookmarkPost(activeProfile.id, post_id);
     setBookmarked(true);
   };
 
@@ -193,7 +192,11 @@ export default function ViewPostScreen() {
         onPress={() => router.push(`/profile?user_id=${id}`)}
       >
         <Image
-          src={'https://picsum.photos/200'}
+          source={
+            activeProfile.avatar_url
+              ? { uri: activeProfile.avatar_url }
+              : require('@/assets/images/default-avatar.jpg')
+          }
           style={profilePictureImageStyle}
         />
         <Text className='p-2 font-bold'>{username}</Text>
@@ -217,12 +220,7 @@ export default function ViewPostScreen() {
         <View className='px-4 py-2'>
           <View className='flex-row flex-wrap gap-1'>
             {post.post_tags?.map((tag) => (
-              <Tag
-                key={tag.tag_id}
-                isForNewPost={false}
-                onRemoveTag={() => {}}
-                tagName={tag.tags?.name ?? ''}
-              />
+              <Tag key={tag.tag_id} tagName={tag.tags?.name ?? ''} />
             ))}
           </View>
         </View>
