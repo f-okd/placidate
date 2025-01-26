@@ -176,18 +176,16 @@ export const saveImage = async (
   imageUri: string
 ): Promise<boolean> => {
   // 1. Store Image in storage bucket
-  const formData = new FormData();
-  // get file name
   const fileName = imageUri?.split('/').pop();
-  // get extension + set image type
   const type = `image/${fileName?.split('/').pop()}`;
+
+  const formData = new FormData();
   formData.append('file', {
     uri: imageUri,
     type,
     name: fileName as string,
-  });
+  } as any);
 
-  // Hard code file name makes it easier to delete when deleting account
   const fileNameToSaveAs: string = `avatar-${user_id}`;
 
   const { error: avatarDeleteError } = await supabase.storage
