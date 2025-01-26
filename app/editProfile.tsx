@@ -15,8 +15,6 @@ import {
   StyleSheet,
 } from 'react-native';
 
-const FormData = global.FormData;
-
 export default function EditProfile() {
   const router = useRouter();
   const { profile: uncastedProfile, refreshProfile } = useAuth();

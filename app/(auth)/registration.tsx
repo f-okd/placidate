@@ -1,8 +1,10 @@
 import { useAuth } from '@/providers/AuthProvider';
 import { showToast } from '@/utils/helpers';
+import { saveImage } from '@/utils/users';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Text, TextInput, TouchableOpacity, View, Image } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 
 export default function RegistrationScreen() {
   const router = useRouter();
@@ -10,21 +12,64 @@ export default function RegistrationScreen() {
   const [username, setUsername] = useState('testAccount');
   const [password, setPassword] = useState('password123');
   const [confirmPassword, setConfirmPassword] = useState('password123');
+  const [image, setImage] = useState<string | null>(null);
 
   const { signUp } = useAuth();
 
   const handleSignUp = async () => {
     if (confirmPassword == password) {
-      return signUp(email, password, username);
+      return signUp(email, password, username, image);
     }
 
     showToast('Error: Passwords must be the same');
+  };
+
+  const imageToDisplay = image
+    ? image
+    : require('@/assets/images/default-avatar.jpg');
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      cameraType: ImagePicker.CameraType.front,
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets[0].fileName) {
+      const photo = result.assets[0];
+      setImage(photo.uri);
+    } else {
+      showToast('Error setting your profile picture');
+    }
   };
 
   return (
     <View className='flex-1 items-center justify-center bg-white'>
       <View className='w-full p-4'>
         <Text className='font-bold text-3xl text-center mb-4'>Register</Text>
+        {/*Avatar section */}
+        <View className='mb-6 items-center'>
+          {image ? (
+            <Image
+              source={{ uri: image }}
+              className='w-[150] h-[150] rounded-full'
+            />
+          ) : (
+            <Image
+              source={imageToDisplay}
+              className='w-[150] h-[150] rounded-full'
+            />
+          )}
+          <TouchableOpacity
+            className='text-xl mt-1 text-gray-600 mb-2'
+            onPress={pickImage}
+          >
+            <Text>Upload new avatar</Text>
+          </TouchableOpacity>
+        </View>
+
         <TextInput
           value={email}
           onChangeText={setEmail}

@@ -16,7 +16,7 @@ import RadioGroup, { RadioButtonProps } from 'react-native-radio-buttons-group';
 
 export default function Settings() {
   const router = useRouter();
-  const { profile: uncastedProfile, refreshProfile } = useAuth();
+  const { profile: uncastedProfile, signOut } = useAuth();
   const activeProfile = uncastedProfile as TProfile;
 
   const [newPassword, setNewPassword] = useState('');
@@ -98,6 +98,14 @@ export default function Settings() {
     ],
     []
   );
+
+  if (loading) {
+    return (
+      <View className='absolute inset-0 bg-black/30 items-center justify-center'>
+        <ActivityIndicator size='large' color='#0000ff' />
+      </View>
+    );
+  }
 
   return (
     <View className='flex-1 bg-white'>
@@ -183,6 +191,17 @@ export default function Settings() {
           </TouchableOpacity>
         </View>
 
+        {/* Sign Out Button */}
+        <TouchableOpacity
+          className='mt-4 p-3'
+          onPress={() => signOut()}
+          disabled={loading}
+        >
+          <Text className='text-blue-500 text-center font-semibold'>
+            Sign Out
+          </Text>
+        </TouchableOpacity>
+
         {/* Back Button */}
         <TouchableOpacity
           className='mt-4 p-3'
@@ -193,13 +212,6 @@ export default function Settings() {
             Back to Profile
           </Text>
         </TouchableOpacity>
-
-        {/* Loading Indicator */}
-        {loading && (
-          <View className='absolute inset-0 bg-black/30 items-center justify-center'>
-            <ActivityIndicator size='large' color='#0000ff' />
-          </View>
-        )}
       </View>
     </View>
   );
