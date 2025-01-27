@@ -1,18 +1,24 @@
 import Header from '@/components/Header';
 import { useAuth } from '@/providers/AuthProvider';
 import { showToast } from '@/utils/helpers';
-import { changeUsername, saveImage, TProfile, updateBio } from '@/utils/users';
-import { useRouter } from 'expo-router';
+import {
+  changeUsername,
+  removeProfilePicture,
+  saveImage,
+  TProfile,
+  updateBio,
+} from '@/utils/users';
 import * as ImagePicker from 'expo-image-picker';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  Image,
-  StyleSheet,
 } from 'react-native';
 
 export default function EditProfile() {
@@ -56,6 +62,18 @@ export default function EditProfile() {
     } else {
       showToast('Error uploading your profile picture');
     }
+  };
+
+  const handleRemoveProfilePicture = async () => {
+    setLoading(true);
+    const success = await removeProfilePicture(
+      activeProfile.id,
+      Boolean(activeProfile.avatar_url || image)
+    );
+    if (success) {
+      refreshProfile();
+    }
+    setLoading(false);
   };
 
   const handleUsernameChange = async () => {
@@ -127,6 +145,12 @@ export default function EditProfile() {
             onPress={pickImage}
           >
             <Text>Upload new avatar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className='text-xl mt-1 text-gray-600 mb-2'
+            onPress={() => handleRemoveProfilePicture()}
+          >
+            <Text className='text-red-800'>Remove avatar</Text>
           </TouchableOpacity>
         </View>
 

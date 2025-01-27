@@ -205,14 +205,15 @@ export const saveImage = async (
 export const removeProfilePicture = async (
   userId: string,
   alreadyHasProfilePicture: boolean
-) => {
+): Promise<boolean> => {
   if (alreadyHasProfilePicture) {
     await removeProfilePictureFromStorage(userId);
   }
   await updateAvatarProfileReference(userId, null);
+  return true;
 };
 
-export const removeProfilePictureFromStorage = async (
+const removeProfilePictureFromStorage = async (
   userId: string
 ): Promise<boolean> => {
   const { data: avatars, error: avatarListError } = await supabase.storage
