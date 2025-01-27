@@ -13,7 +13,7 @@ interface IProfileHeader {
   postCount: number;
   followerCount: number;
   followingCount: number;
-  avatar: string;
+  avatar: string | null;
 }
 
 export default function OwnProfileHeader({
@@ -24,11 +24,15 @@ export default function OwnProfileHeader({
 }: IProfileHeader) {
   const router = useRouter();
 
+  const imageToDisplay = avatar
+    ? { uri: avatar }
+    : require('@/assets/images/default-avatar.jpg');
+
   return (
     <View className='border-b pb-5 border-gray-200 px-10'>
       {/*Section for profile picture and post, follower, following counts */}
       <View className='flex-row items-center justify-between  '>
-        <Image src={avatar} style={profilePictureImageStyle} />
+        <Image source={imageToDisplay} style={profilePictureImageStyle} />
         <View>
           <Text className='font-bold text-xl'>{followerCount}</Text>
           <Text>Followers</Text>

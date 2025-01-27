@@ -48,9 +48,11 @@ export default function EditProfile() {
 
     if (!result.canceled && result.assets[0].fileName) {
       const photo = result.assets[0];
+      setLoading(true);
       setImage(photo.uri);
       await saveImage(activeProfile.id, photo.uri);
       await refreshProfile();
+      setLoading(false);
     } else {
       showToast('Error uploading your profile picture');
     }
@@ -92,6 +94,13 @@ export default function EditProfile() {
     }
   };
 
+  if (loading) {
+    return (
+      <View className='absolute inset-0 bg-black/30 items-center justify-center'>
+        <ActivityIndicator size='large' color='#0000ff' />
+      </View>
+    );
+  }
   return (
     <View className='flex-1 bg-white'>
       <Header
@@ -175,13 +184,6 @@ export default function EditProfile() {
             Back to Profile
           </Text>
         </TouchableOpacity>
-
-        {/* Loading Indicator */}
-        {loading && (
-          <View className='absolute inset-0 bg-black/30 items-center justify-center'>
-            <ActivityIndicator size='large' color='#0000ff' />
-          </View>
-        )}
       </View>
     </View>
   );

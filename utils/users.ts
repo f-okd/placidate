@@ -175,7 +175,7 @@ export const saveImage = async (
   user_id: string,
   imageUri: string
 ): Promise<boolean> => {
-  // 1. Store Image in storage bucket
+  // 1. Prepare image as form data object
   const fileName = imageUri?.split('/').pop();
   const type = `image/${fileName?.split('/').pop()}`;
 
@@ -186,18 +186,11 @@ export const saveImage = async (
     name: fileName as string,
   } as any);
 
-  const fileNameToSaveAs: string = `avatar-${user_id}`;
+  const fileNameToSaveAs: string = `avatar-${user_id}-${Math.random()}`;
 
-  const { error: avatarDeleteError } = await supabase.storage
-    .from('avatars')
-    .remove([`avatar-${user_id}`]);
-
-  if (avatarDeleteError) {
-    throw new Error(
-      `Error deleting user: ${user_id}'s existing avatar, ${avatarDeleteError.message}`
-    );
-  }
-
+  // 2. Remove existing image from storage bucket
+  await removeProfilePictureFromStorage(user_id);
+  // 3. Upload image to storage bucket
   const { error: storageError } = await supabase.storage
     .from('avatars')
     .upload(fileNameToSaveAs, formData);
@@ -205,16 +198,63 @@ export const saveImage = async (
   if (storageError) throw new Error(storageError.message);
 
   // 2. Update avatar reference in the user's record after successfully uploading image
+  await updateAvatarProfileReference(user_id, fileNameToSaveAs);
+  return true;
+};
+
+export const removeProfilePicture = async (
+  userId: string,
+  alreadyHasProfilePicture: boolean
+) => {
+  if (alreadyHasProfilePicture) {
+    await removeProfilePictureFromStorage(userId);
+  }
+  await updateAvatarProfileReference(userId, null);
+};
+
+export const removeProfilePictureFromStorage = async (
+  userId: string
+): Promise<boolean> => {
+  const { data: avatars, error: avatarListError } = await supabase.storage
+    .from('avatars')
+    .list('', {
+      search: `avatar-${userId}-`,
+    });
+
+  if (avatarListError) {
+    console.error(`Error listing avatars for user ${userId}`);
+    return false;
+  }
+  // Should only ever return one value
+  if (avatars && avatars.length > 0) {
+    const { error: avatarDeleteError } = await supabase.storage
+      .from('avatars')
+      .remove([avatars[0].name]);
+
+    if (avatarDeleteError) {
+      console.error(`Error deleting user ${userId}'s avatar:`);
+      return false;
+    }
+  }
+  return true;
+};
+
+const updateAvatarProfileReference = async (
+  userId: string,
+  fileNameToSaveAs: string | null
+) => {
   const { error } = await supabase
     .from('profiles')
     .update({
-      avatar_url: `${SUPABASE_URL}/storage/v1/object/public/avatars/${fileNameToSaveAs}`,
+      avatar_url: fileNameToSaveAs
+        ? `${SUPABASE_URL}/storage/v1/object/public/avatars/${fileNameToSaveAs}`
+        : null,
     })
-    .eq('id', user_id);
+    .eq('id', userId);
 
   if (error)
     throw new Error(
-      `Error updating avatar referece for user: ${user_id} \n ${error.message}`
+      `Error updating avatar referece for user: ${userId} \n ${error.message}`
     );
   return true;
 };
