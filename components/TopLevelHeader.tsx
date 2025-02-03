@@ -1,14 +1,14 @@
-import { View, Text, TouchableOpacity } from 'react-native';
-import React from 'react';
+import { View, Text, TouchableOpacity, Modal } from 'react-native';
+import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { blockUser } from '@/utils/userUserInteractions';
 
 interface IHeaderProps {
   title: string;
   showBackIcon?: boolean;
   showNotificationIcon?: boolean;
   isProfilePage?: boolean;
-  isOtherUsersProfilePage?: boolean;
 }
 
 export default function Header({
@@ -16,7 +16,6 @@ export default function Header({
   showBackIcon = false,
   showNotificationIcon = false,
   isProfilePage = false,
-  isOtherUsersProfilePage = false,
 }: IHeaderProps) {
   const router = useRouter();
 
@@ -46,12 +45,6 @@ export default function Header({
         {isProfilePage && (
           <TouchableOpacity onPress={() => router.push('/settings')}>
             <Ionicons name='settings' size={22} />
-          </TouchableOpacity>
-        )}
-
-        {isOtherUsersProfilePage && (
-          <TouchableOpacity onPress={() => router.push('/settings')}>
-            <Ionicons name='ellipsis-horizontal' size={22} />
           </TouchableOpacity>
         )}
       </View>

@@ -1,4 +1,4 @@
-import Header from '@/components/Header';
+import Header from '@/components/TopLevelHeader';
 import Post from '@/components/Post';
 import { supabase } from '@/utils/supabase/supabase';
 import { QueryData } from '@supabase/supabase-js';

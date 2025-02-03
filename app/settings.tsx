@@ -1,4 +1,4 @@
-import Header from '@/components/Header';
+import Header from '@/components/TopLevelHeader';
 import { useAuth } from '@/providers/AuthProvider';
 import { showToast } from '@/utils/helpers';
 import { changePassword, deleteAccount, TProfile } from '@/utils/users';

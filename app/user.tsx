@@ -1,4 +1,4 @@
-import Header from '@/components/Header';
+import Header from '@/components/OtherUserTopLevelHeader';
 import ProfileHeader from '@/components/ProfileHeader';
 import PostPreview from '@/components/PostPreview';
 import { Profile, useAuth } from '@/providers/AuthProvider';
@@ -18,6 +18,8 @@ export default function OtherUsersProfileScreen() {
   const router = useRouter();
   const { profile: uncastedProfile } = useAuth();
 
+  const [currentlyLoggedInProfile, setCurrentlyLoggedInProfile] =
+    useState<Profile>(uncastedProfile as TProfile);
   const [profile, setProfile] = useState<Profile | null>();
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState<TPost[]>([]);
@@ -94,7 +96,10 @@ export default function OtherUsersProfileScreen() {
 
   return (
     <View className='flex-1 bg-white'>
-      <Header title={profile.username} showBackIcon isOtherUsersProfilePage />
+      <Header
+        currentlyLoggedInUser={currentlyLoggedInProfile}
+        currentlyViewedUser={profile}
+      />
       <ProfileHeader
         profile={profile}
         currentlyLoggedInUser={false}

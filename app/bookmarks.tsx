@@ -5,7 +5,7 @@ import { TPost } from '@/utils/posts';
 import { router, useFocusEffect } from 'expo-router';
 import { useAuth } from '@/providers/AuthProvider';
 import { getBookmarks, TProfile } from '@/utils/users';
-import Header from '@/components/Header';
+import Header from '@/components/TopLevelHeader';
 import BookmarkedPostPreview from '@/components/BookmarkedPostPreview';
 
 export default function Bookmarks() {

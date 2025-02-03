@@ -1,4 +1,4 @@
-import Header from '@/components/Header';
+import Header from '@/components/TopLevelHeader';
 import OwnProfileHeader from '@/components/OwnProfileHeader';
 import PostPreview from '@/components/PostPreview';
 import { useAuth } from '@/providers/AuthProvider';

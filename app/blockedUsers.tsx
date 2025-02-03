@@ -1,6 +1,6 @@
 import { View, Text, FlatList, ActivityIndicator } from 'react-native';
 import React, { useCallback, useState } from 'react';
-import Header from '@/components/Header';
+import Header from '@/components/TopLevelHeader';
 import { TProfile } from '@/utils/users';
 import BlockedUser from '@/components/BlockedUser';
 import { getBlockedUsers, unblockUser } from '@/utils/userUserInteractions';
