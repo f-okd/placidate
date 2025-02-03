@@ -52,16 +52,55 @@ export const getUserFollowCounts = async (
 };
 
 export const searchForUsers = async (
+  currentlyAuthenticatedUser: string,
   searchTerm: string
 ): Promise<TProfile[]> => {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select()
-    .ilike('username', `%${searchTerm}%`);
-  if (error) {
-    console.error('Error searching for user:');
+  try {
+    // Get blocks
+    const { data: blocks, error: blocksError } = await supabase
+      .from('blocks')
+      .select('blocker_id, blocked_id');
+
+    if (blocksError) {
+      console.error('Error fetching blocks:', blocksError);
+      return [];
+    }
+
+    // Create Sets
+    const blockedUsers = new Set(
+      blocks
+        ?.filter((block) => block.blocker_id === currentlyAuthenticatedUser)
+        .map((block) => block.blocked_id)
+    );
+    const blockedByUsers = new Set(
+      blocks
+        ?.filter((block) => block.blocked_id === currentlyAuthenticatedUser)
+        .map((block) => block.blocker_id)
+    );
+
+    // Get users
+    const { data, error } = await supabase
+      .from('profiles')
+      .select()
+      .ilike('username', `%${searchTerm}%`);
+
+    if (error) {
+      console.error('Error searching for users:', error);
+      return [];
+    }
+
+    // Filter users based on blocks
+    return (
+      data.filter((profile) => {
+        const isBlocked = blockedUsers.has(profile.id);
+        const isBlockedBy = blockedByUsers.has(profile.id);
+        return !isBlocked && !isBlockedBy;
+      }) || []
+    );
+  } catch (error) {
+    console.error('Error in searchForUsers:', error);
+    return [];
   }
-  return data || [];
 };
 
 export const getBookmarks = async (userId: string): Promise<TPost[]> => {

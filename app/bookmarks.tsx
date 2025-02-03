@@ -1,4 +1,3 @@
-// bookmarks.tsx
 import { View, Text, ActivityIndicator, FlatList } from 'react-native';
 import React, { useCallback, useState } from 'react';
 import { TPost } from '@/utils/posts';

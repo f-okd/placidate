@@ -1,5 +1,6 @@
 import PostPreview from '@/components/PostPreview';
 import UserSearchResult from '@/components/UserSearchResult';
+import { useAuth } from '@/providers/AuthProvider';
 import { searchForPosts, searchForPostsByTag, TPost } from '@/utils/posts';
 import { searchForUsers, TProfile } from '@/utils/users';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -35,6 +36,9 @@ export default function SearchScreen() {
   const [searchType, setSearchType] = useState<SearchTerm>(SearchTerm.POSTS);
   const [showDropdown, setShowDropdown] = useState(false);
 
+  const { profile: uncastedProfile } = useAuth();
+  const activeProfile = uncastedProfile as TProfile;
+
   const [fetchedPosts, setfFetchedPosts] = useState<TPost[]>([]);
   const [fetchedPostsByTag, setFetchedPostsByTag] = useState<TPost[]>([]);
   const [fetchedUsers, setFetchedUsers] = useState<TProfile[]>([]);
@@ -51,19 +55,22 @@ export default function SearchScreen() {
     switch (searchType) {
       case SearchTerm.USERS:
         setLoading(true);
-        const usersResult = await searchForUsers(searchText);
+        const usersResult = await searchForUsers(activeProfile.id, searchText);
         setFetchedUsers(usersResult);
         setLoading(false);
         break;
       case SearchTerm.POSTS:
         setLoading(true);
-        const postsResult = await searchForPosts(searchText);
+        const postsResult = await searchForPosts(activeProfile.id, searchText);
         setfFetchedPosts(postsResult);
         console.log(postsResult);
         setLoading(false);
       case SearchTerm.TAGS:
         setLoading(true);
-        const postsByTagResult = await searchForPostsByTag(searchText);
+        const postsByTagResult = await searchForPostsByTag(
+          activeProfile.id,
+          searchText
+        );
         setFetchedPostsByTag(postsByTagResult);
         console.log(postsByTagResult);
         setLoading(false);

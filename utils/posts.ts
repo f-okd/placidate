@@ -1,10 +1,10 @@
 import { supabase } from './supabase/supabase';
 import { Tables } from './supabase/types';
 import { TProfile } from './users';
+export { TProfile };
 
 export type TComments = Tables<'comments'>;
 export type TPost = Tables<'posts'>;
-
 export type TCommentsAndAuthors = TComments & {
   profiles: TProfile | null;
   deletable: boolean;
@@ -14,50 +14,230 @@ export const getCommentsAndAuthors = async (
   currentlyAuthenticatedUser: string,
   post_id: string
 ): Promise<TCommentsAndAuthors[] | null> => {
-  const { data, error } = await supabase
-    .from('comments')
-    .select('*,profiles(*)')
-    .eq('post_id', post_id);
+  try {
+    // First get blocks
+    const { data: blocks, error: blocksError } = await supabase
+      .from('blocks')
+      .select('blocker_id, blocked_id');
 
-  if (error) {
-    console.error(error.message);
+    if (blocksError) {
+      console.error('Error fetching blocks:', blocksError);
+      return null;
+    }
+
+    // Create Sets for efficient lookup
+    const blockedUsers = new Set(
+      blocks
+        ?.filter((block) => block.blocker_id === currentlyAuthenticatedUser)
+        .map((block) => block.blocked_id)
+    );
+    const blockedByUsers = new Set(
+      blocks
+        ?.filter((block) => block.blocked_id === currentlyAuthenticatedUser)
+        .map((block) => block.blocker_id)
+    );
+
+    // Get comments with profiles
+    const { data, error } = await supabase
+      .from('comments')
+      .select('*, profiles(*)')
+      .eq('post_id', post_id);
+
+    if (error) {
+      console.error(error.message);
+      return null;
+    }
+
+    if (!data) {
+      console.error(`Error fetching comments for post: ${post_id}`);
+      return null;
+    }
+
+    // Filter and map the comments
+    return data
+      .filter(
+        (comment) =>
+          !blockedUsers.has(comment.user_id) &&
+          !blockedByUsers.has(comment.user_id)
+      )
+      .map((commentAndProfileObject) => ({
+        ...commentAndProfileObject,
+        deletable:
+          commentAndProfileObject.profiles?.id === currentlyAuthenticatedUser ||
+          commentAndProfileObject.user_id === currentlyAuthenticatedUser,
+      }));
+  } catch (error) {
+    console.error('Error in getCommentsAndAuthors:', error);
     return null;
   }
-  if (!data) {
-    console.error(`Error fetching comments for post: ${post_id}`);
+};
+
+export type TGetHomePagePost = {
+  author_id: string;
+  body: string;
+  created_at: string;
+  description: string | null;
+  id: string;
+  post_tags: Array<{
+    tag_id: string;
+    tags: {
+      name: string;
+    } | null;
+  }>;
+  post_type: string;
+  profiles: {
+    avatar_url: string | null;
+    id: string;
+    username: string;
+  } | null;
+  title: string;
+  updated_at: string | null;
+};
+
+export const getHomePagePosts = async (
+  currentlyAuthenticatedUser: string
+): Promise<TGetHomePagePost[] | null> => {
+  try {
+    // First, get the blocked relationships
+    const { data: blocks, error: blocksError } = await supabase
+      .from('blocks')
+      .select('blocker_id, blocked_id');
+
+    if (blocksError) {
+      console.error('Error fetching blocks:', blocksError);
+      return null;
+    }
+
+    // Get all blocked and blocker IDs related to the current user
+    const blockedUsers = new Set(
+      blocks
+        ?.filter((block) => block.blocker_id === currentlyAuthenticatedUser)
+        .map((block) => block.blocked_id)
+    );
+    const blockedByUsers = new Set(
+      blocks
+        ?.filter((block) => block.blocked_id === currentlyAuthenticatedUser)
+        .map((block) => block.blocker_id)
+    );
+
+    // Get posts
+    const { data: posts, error: postsError } = await supabase
+      .from('posts')
+      .select(
+        `
+        *,
+        profiles!posts_author_id_fkey(id, username, avatar_url),
+        post_tags(
+          tag_id,
+          tags(
+            name
+          )
+        )
+      `
+      )
+      .order('created_at', { ascending: false });
+
+    if (postsError) {
+      console.error('Error fetching posts:', postsError);
+      return null;
+    }
+
+    // Filter out posts from blocked users
+    return posts.filter(
+      (post) =>
+        !blockedUsers.has(post.author_id) && !blockedByUsers.has(post.author_id)
+    );
+  } catch (error) {
+    console.error('Error in getPosts:', error);
     return null;
   }
-  return data.map((commentAndProfileObject) => ({
-    ...commentAndProfileObject,
-    deletable:
-      commentAndProfileObject.profiles?.id == currentlyAuthenticatedUser ||
-      commentAndProfileObject.user_id == currentlyAuthenticatedUser,
-  }));
 };
 
 export const searchForPosts = async (
-  searchTerm: string
-): Promise<TPost[] | []> => {
-  const { data, error } = await supabase
-    .from('posts')
-    .select()
-    .ilike('title', `%${searchTerm}%`);
-
-  if (error) {
-    console.error('Error searching for a post:', error);
-  }
-  return data || [];
-};
-
-export const searchForPostsByTag = async (
+  currentlyAuthenticatedUser: string,
   searchTerm: string
 ): Promise<TPost[] | []> => {
   try {
+    // Get blocks
+    const { data: blocks, error: blocksError } = await supabase
+      .from('blocks')
+      .select('blocker_id, blocked_id');
+
+    if (blocksError) {
+      console.error('Error fetching blocks:', blocksError);
+      return [];
+    }
+
+    // Create Sets
+    const blockedUsers = new Set(
+      blocks
+        ?.filter((block) => block.blocker_id === currentlyAuthenticatedUser)
+        .map((block) => block.blocked_id)
+    );
+    const blockedByUsers = new Set(
+      blocks
+        ?.filter((block) => block.blocked_id === currentlyAuthenticatedUser)
+        .map((block) => block.blocker_id)
+    );
+
+    // Get posts with specific profile relationship
+    const { data, error } = await supabase
+      .from('posts')
+      .select('*, profiles!posts_author_id_fkey(*)')
+      .ilike('title', `%${searchTerm}%`);
+
+    if (error) {
+      console.error('Error searching for posts:', error);
+      return [];
+    }
+
+    return (
+      data.filter(
+        (post) =>
+          !blockedUsers.has(post.author_id) &&
+          !blockedByUsers.has(post.author_id)
+      ) || []
+    );
+  } catch (error) {
+    console.error('Error in searchForPosts:', error);
+    return [];
+  }
+};
+
+export const searchForPostsByTag = async (
+  currentlyAuthenticatedUser: string,
+  searchTerm: string
+): Promise<TPost[] | []> => {
+  try {
+    // Get blocks
+    const { data: blocks, error: blocksError } = await supabase
+      .from('blocks')
+      .select('blocker_id, blocked_id');
+
+    if (blocksError) {
+      console.error('Error fetching blocks:', blocksError);
+      return [];
+    }
+
+    // Create Sets
+    const blockedUsers = new Set(
+      blocks
+        ?.filter((block) => block.blocker_id === currentlyAuthenticatedUser)
+        .map((block) => block.blocked_id)
+    );
+    const blockedByUsers = new Set(
+      blocks
+        ?.filter((block) => block.blocked_id === currentlyAuthenticatedUser)
+        .map((block) => block.blocker_id)
+    );
+
+    // Get posts by tag with specific profile relationship
     const { data: posts, error } = await supabase
       .from('posts')
       .select(
         `
         *,
+        profiles!posts_author_id_fkey(*),
         post_tags!inner(
           tags!inner(
             name
@@ -70,13 +250,19 @@ export const searchForPostsByTag = async (
     if (error) {
       throw error;
     }
-    return posts || [];
+
+    return (
+      posts.filter(
+        (post) =>
+          !blockedUsers.has(post.author_id) &&
+          !blockedByUsers.has(post.author_id)
+      ) || []
+    );
   } catch (error) {
     console.error('Error searching for posts by tag:', error);
     return [];
   }
 };
-export { TProfile };
 
 export const deletePost = async (postId: string): Promise<boolean> => {
   try {

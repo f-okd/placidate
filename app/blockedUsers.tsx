@@ -11,6 +11,7 @@ import { useFocusEffect } from 'expo-router';
 export default function blockedUsers() {
   const [blockedUsers, setBlockedUsers] = useState<TProfile[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+
   const { profile: uncastedProfile } = useAuth();
   const activeProfile = uncastedProfile as TProfile;
 

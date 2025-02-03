@@ -6,15 +6,11 @@ import { blockUser } from '@/utils/userUserInteractions';
 import { TProfile } from '@/utils/users';
 
 interface IHeaderProps {
-  showBackIcon?: boolean;
-  showNotificationIcon?: boolean;
   currentlyLoggedInUser: TProfile;
   currentlyViewedUser: TProfile;
 }
 
 export default function Header({
-  showBackIcon = false,
-  showNotificationIcon = false,
   currentlyLoggedInUser,
   currentlyViewedUser,
 }: IHeaderProps) {
@@ -34,11 +30,9 @@ export default function Header({
   return (
     <View className='flex-row w-full items-center justify-between bg-white p-4'>
       <View className='w-10'>
-        {showBackIcon && (
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name='chevron-back' size={22} />
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name='chevron-back' size={22} />
+        </TouchableOpacity>
       </View>
       <View>
         <TouchableOpacity>
@@ -48,14 +42,6 @@ export default function Header({
         </TouchableOpacity>
       </View>
       <View className='w-10'>
-        {showNotificationIcon && (
-          <TouchableOpacity
-            onPress={() => console.log('Navigate to notification screen')}
-          >
-            <Ionicons name='notifications' size={22} />
-          </TouchableOpacity>
-        )}
-
         <TouchableOpacity onPress={() => setModalVisible(true)}>
           <Ionicons name='ellipsis-horizontal' size={22} />
         </TouchableOpacity>

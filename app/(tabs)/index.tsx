@@ -11,42 +11,24 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-
-const getPostsQuery = supabase
-  .from('posts')
-  .select(
-    `
-    *,
-    profiles!posts_author_id_fkey(id, username, avatar_url),
-    post_tags(
-      tag_id,
-      tags(
-        name
-      )
-    )
-  `
-  )
-  .order('created_at', { ascending: false });
-
-export type TGetPosts = QueryData<typeof getPostsQuery>;
+import { getHomePagePosts, TGetHomePagePost, TProfile } from '@/utils/posts';
+import { useAuth } from '@/providers/AuthProvider';
 
 export default function HomeScreen() {
-  const [posts, setPosts] = useState<TGetPosts>([]);
+  const [posts, setPosts] = useState<TGetHomePagePost[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
+
+  const { profile: uncastedProfile, refreshProfile } = useAuth();
+  const activeProfile = uncastedProfile as TProfile;
 
   const getPosts = async (showLoadingState = true): Promise<void> => {
     if (showLoadingState) setLoading(true);
 
     try {
-      const { data, error } = await getPostsQuery;
+      const posts = await getHomePagePosts(activeProfile.id);
 
-      if (error) {
-        console.error('Error fetching posts:', error);
-        return;
-      }
-
-      setPosts(data);
+      setPosts(posts ?? []);
     } catch (error) {
       console.error('Unexpected error fetching posts:', error);
     } finally {
