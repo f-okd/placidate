@@ -8,6 +8,7 @@ interface IHeaderProps {
   showBackIcon?: boolean;
   showNotificationIcon?: boolean;
   isProfilePage?: boolean;
+  isOtherUsersProfilePage?: boolean;
 }
 
 export default function Header({
@@ -15,6 +16,7 @@ export default function Header({
   showBackIcon = false,
   showNotificationIcon = false,
   isProfilePage = false,
+  isOtherUsersProfilePage = false,
 }: IHeaderProps) {
   const router = useRouter();
 
@@ -44,6 +46,12 @@ export default function Header({
         {isProfilePage && (
           <TouchableOpacity onPress={() => router.push('/settings')}>
             <Ionicons name='settings' size={22} />
+          </TouchableOpacity>
+        )}
+
+        {isOtherUsersProfilePage && (
+          <TouchableOpacity onPress={() => router.push('/settings')}>
+            <Ionicons name='ellipsis-horizontal' size={22} />
           </TouchableOpacity>
         )}
       </View>

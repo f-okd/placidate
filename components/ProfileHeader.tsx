@@ -62,7 +62,7 @@ export default function ProfileHeader({
   return (
     <View className='border-b pb-5 border-gray-200 px-10'>
       <View className='flex-row items-center justify-between'>
-        <Image src={imageToDisplay} style={profilePictureImageStyle} />
+        <Image source={imageToDisplay} style={profilePictureImageStyle} />
         <View>
           <Text className='font-bold text-xl'>{followerCount}</Text>
           <Text>Followers</Text>

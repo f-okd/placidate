@@ -94,7 +94,7 @@ export default function OtherUsersProfileScreen() {
 
   return (
     <View className='flex-1 bg-white'>
-      <Header title={profile.username} showBackIcon />
+      <Header title={profile.username} showBackIcon isOtherUsersProfilePage />
       <ProfileHeader
         profile={profile}
         currentlyLoggedInUser={false}

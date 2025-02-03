@@ -75,26 +75,7 @@ export default function ActionBar({
         >
           <View className='mt-auto bg-white rounded-t-3xl'>
             <View className='p-4 gap-4'>
-              <TouchableOpacity
-                className='flex-row items-center gap-2 p-2'
-                onPress={() => {
-                  console.log('Report pressed');
-                  setModalVisible(false);
-                }}
-              >
-                <Ionicons name='flag-outline' size={24} color='black' />
-                <Text className='text-lg'>Report Post</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                className='flex-row items-center gap-2 p-2'
-                onPress={handleBlock}
-              >
-                <Ionicons name='ban-outline' size={24} color='black' />
-                <Text className='text-lg'>Block User</Text>
-              </TouchableOpacity>
-
-              {authorId == profile?.id && (
+              {authorId == profile?.id ? (
                 <TouchableOpacity
                   className='flex-row items-center gap-2 p-2'
                   onPress={onDelete}
@@ -102,6 +83,26 @@ export default function ActionBar({
                   <Ionicons name='trash-outline' size={24} color='black' />
                   <Text className='text-lg'>Delete post</Text>
                 </TouchableOpacity>
+              ) : (
+                <>
+                  <TouchableOpacity
+                    className='flex-row items-center gap-2 p-2'
+                    onPress={() => {
+                      console.log('Report pressed');
+                      setModalVisible(false);
+                    }}
+                  >
+                    <Ionicons name='flag-outline' size={24} color='black' />
+                    <Text className='text-lg'>Report Post</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    className='flex-row items-center gap-2 p-2'
+                    onPress={handleBlock}
+                  >
+                    <Ionicons name='ban-outline' size={24} color='black' />
+                    <Text className='text-lg'>Block User</Text>
+                  </TouchableOpacity>
+                </>
               )}
 
               <TouchableOpacity
