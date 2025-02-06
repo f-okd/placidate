@@ -78,6 +78,14 @@ export const blockUser = async (
     );
     throw error;
   }
+
+  // remove follow relationship after blocking
+  await supabase
+    .from('follows')
+    .delete()
+    .or(
+      `follower_id.eq.${blockerUserId},following_id.eq.${blockedUserId},follower_id.eq.${blockedUserId},following_id.eq.${blockerUserId}`
+    );
 };
 
 export const unblockUser = async (

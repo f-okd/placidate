@@ -94,7 +94,66 @@ export type TGetHomePagePost = {
   updated_at: string | null;
 };
 
-export const getHomePagePosts = async (
+export const getFollowingPosts = async (
+  currentlyAuthenticatedUser: string
+): Promise<TGetHomePagePost[] | null> => {
+  try {
+    // First, get the blocked relationships
+    const { data: blocks, error: blocksError } = await supabase
+      .from('blocks')
+      .select('blocker_id, blocked_id');
+
+    if (blocksError) {
+      console.error('Error fetching blocks:', blocksError);
+      return null;
+    }
+
+    // Get all blocked and blocker IDs related to the current user
+    const blockedUsers = new Set(
+      blocks
+        ?.filter((block) => block.blocker_id === currentlyAuthenticatedUser)
+        .map((block) => block.blocked_id)
+    );
+    const blockedByUsers = new Set(
+      blocks
+        ?.filter((block) => block.blocked_id === currentlyAuthenticatedUser)
+        .map((block) => block.blocker_id)
+    );
+
+    // Get posts
+    const { data: posts, error: postsError } = await supabase
+      .from('posts')
+      .select(
+        `
+        *,
+        profiles!posts_author_id_fkey(id, username, avatar_url),
+        post_tags(
+          tag_id,
+          tags(
+            name
+          )
+        )
+      `
+      )
+      .order('created_at', { ascending: false });
+
+    if (postsError) {
+      console.error('Error fetching posts:', postsError);
+      return null;
+    }
+
+    // Filter out posts from blocked users
+    return posts.filter(
+      (post) =>
+        !blockedUsers.has(post.author_id) && !blockedByUsers.has(post.author_id)
+    );
+  } catch (error) {
+    console.error('Error in getPosts:', error);
+    return null;
+  }
+};
+
+export const getRecommendedPosts = async (
   currentlyAuthenticatedUser: string
 ): Promise<TGetHomePagePost[] | null> => {
   try {
