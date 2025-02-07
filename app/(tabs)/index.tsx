@@ -2,7 +2,7 @@ import Post from '@/components/Post';
 import Header from '@/components/TopLevelHeader';
 import { useAuth } from '@/providers/AuthProvider';
 import { getRecommendedPosts, TGetHomePagePost, TProfile } from '@/utils/posts';
-import { supabase } from '@/utils/supabase/supabase';
+import { supabase } from '@/utils/supabase/client';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
 import {

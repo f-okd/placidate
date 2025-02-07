@@ -9,7 +9,7 @@ import {
   TCommentsAndAuthors,
   TProfile,
 } from '@/utils/posts';
-import { supabase } from '@/utils/supabase/supabase';
+import { supabase } from '@/utils/supabase/client';
 import {
   addComment,
   bookmarkPost,

@@ -1,4 +1,4 @@
-import { supabase } from './supabase/supabase';
+import { supabase } from './supabase/client';
 import { TProfile } from './users';
 
 export const followUser = async (

@@ -1,4 +1,4 @@
-import { supabase } from './supabase/supabase';
+import { supabase } from './supabase/client';
 
 export const addComment = async (
   sender_id: string,

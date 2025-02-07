@@ -1,4 +1,4 @@
-import { supabase } from '@/utils/supabase/supabase';
+import { supabase } from '@/utils/supabase/client';
 import { Database } from '@/utils/supabase/types';
 import { saveImage } from '@/utils/users';
 import { getProfile } from '@/utils/userUserInteractions';

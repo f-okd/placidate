@@ -1,4 +1,4 @@
-import { supabase } from './supabase/supabase';
+import { supabase } from './supabase/client';
 import { Tables } from './supabase/types';
 import { TProfile } from './users';
 export { TProfile };

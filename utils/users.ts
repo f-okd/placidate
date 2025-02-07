@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { TPost } from './posts';
-import { supabase } from './supabase/supabase';
+import { supabase } from './supabase/client';
 import { Tables } from './supabase/types';
 
 const PLACIDATE_SERVER_BASE_URL = 'http://10.0.2.2:8000';
