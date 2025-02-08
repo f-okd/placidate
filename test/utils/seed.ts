@@ -76,7 +76,7 @@ async function seedData() {
     const tagNames = ['poetry', 'love', 'nature', 'life', 'art'];
     for (const tagName of tagNames) {
       const tagId = generateUUID();
-      const { error } = await seedingClient.from('Tags').insert({
+      const { error } = await seedingClient.from('tags').insert({
         id: tagId,
         name: tagName,
       });
