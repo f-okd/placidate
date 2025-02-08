@@ -1,12 +1,12 @@
-import { View, Text, FlatList, ActivityIndicator } from 'react-native';
-import React, { useCallback, useState } from 'react';
-import Header from '@/components/TopLevelHeader';
-import { TProfile } from '@/utils/users';
 import BlockedUser from '@/components/BlockedUser';
-import { getBlockedUsers, unblockUser } from '@/utils/userUserInteractions';
+import Header from '@/components/TopLevelHeader';
 import { useAuth } from '@/providers/AuthProvider';
 import { showToast } from '@/utils/helpers';
+import SupabaseUserUserInteractionEndpoint from '@/utils/supabase/UserUserInteractionEndpoint ';
+import { TProfile } from '@/utils/types';
 import { useFocusEffect } from 'expo-router';
+import React, { useCallback, useState } from 'react';
+import { ActivityIndicator, FlatList, View } from 'react-native';
 
 export default function blockedUsers() {
   const [blockedUsers, setBlockedUsers] = useState<TProfile[]>([]);
@@ -15,10 +15,12 @@ export default function blockedUsers() {
   const { profile: uncastedProfile } = useAuth();
   const activeProfile = uncastedProfile as TProfile;
 
+  const userUserEndpoint = new SupabaseUserUserInteractionEndpoint();
+
   const loadBlockedUsers = async () => {
     setLoading(true);
     try {
-      const blocked = await getBlockedUsers(activeProfile?.id);
+      const blocked = await userUserEndpoint.getBlockedUsers(activeProfile?.id);
       setBlockedUsers(blocked);
     } catch (error) {
       console.error('Error loading blocked users:', error);
@@ -29,7 +31,7 @@ export default function blockedUsers() {
 
   const handleUnblockUser = async (targetId: string) => {
     try {
-      await unblockUser(activeProfile.id, targetId);
+      await userUserEndpoint.unblockUser(activeProfile.id, targetId);
       setBlockedUsers((currentlyBlockedUsers) =>
         currentlyBlockedUsers.filter(
           (blockedUser) => blockedUser.id != targetId

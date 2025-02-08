@@ -1,50 +1,30 @@
 import ActionBar from '@/components/ActionBar';
 import Comment from '@/components/Comment';
-import Header from '@/components/TopLevelHeader';
 import Tag from '@/components/Tag';
+import Header from '@/components/TopLevelHeader';
 import { useAuth } from '@/providers/AuthProvider';
-import {
-  deletePost,
-  getCommentsAndAuthors,
-  TCommentsAndAuthors,
-  TProfile,
-} from '@/utils/posts';
+import { showToast } from '@/utils/helpers';
 import { supabase } from '@/utils/supabase/client';
-import {
-  addComment,
-  bookmarkPost,
-  deleteComment,
-  likePost,
-  postIsBookmarkedByUser,
-  postIsLikedByUser,
-  unbookmarkPost,
-  unlikePost,
-} from '@/utils/userPostInteractions';
+import SupabasePostEndpoint from '@/utils/supabase/PostEndpoint';
+import SupabaseUserPostInteractionEndpoint from '@/utils/supabase/UserPostInteractionEndpoint';
+import { TCommentsAndAuthors, TGetHomePagePost, TProfile } from '@/utils/types';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Image,
   KeyboardAvoidingView,
   Platform,
   Text,
   TextInput,
-  ToastAndroid,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { TGetPosts } from './(tabs)';
-import { showToast } from '@/utils/helpers';
-
-interface IViewPostProps {
-  post: TGetPosts;
-}
 
 export default function ViewPostScreen() {
-  const [post, setPost] = useState<TGetPosts[number]>();
+  const [post, setPost] = useState<TGetHomePagePost>();
   const [comments, setComments] = useState<TCommentsAndAuthors[]>([]);
   const [text, setText] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
@@ -54,6 +34,9 @@ export default function ViewPostScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const post_id = params.post_id as string;
+
+  const postEndpoint = new SupabasePostEndpoint();
+  const userPostEndpoint = new SupabaseUserPostInteractionEndpoint();
 
   const { profile: uncastedProfile } = useAuth();
   const activeProfile = uncastedProfile as TProfile;
@@ -93,7 +76,7 @@ export default function ViewPostScreen() {
   };
 
   const loadComments = async (): Promise<void> => {
-    const comments = await getCommentsAndAuthors(
+    const comments = await postEndpoint.getCommentsAndAuthors(
       activeProfile.id,
       String(post_id)
     );
@@ -104,7 +87,7 @@ export default function ViewPostScreen() {
   };
 
   const handleAddComment = async (): Promise<void> => {
-    await addComment(activeProfile.id, String(post_id), text);
+    await userPostEndpoint.addComment(activeProfile.id, String(post_id), text);
     setText('');
     await loadComments();
   };
@@ -112,7 +95,9 @@ export default function ViewPostScreen() {
   const handleDeleteComment = async (
     commentToDelete: string
   ): Promise<void> => {
-    const successfulDelete = await deleteComment(commentToDelete);
+    const successfulDelete = await userPostEndpoint.deleteComment(
+      commentToDelete
+    );
     if (successfulDelete) {
       const newComments = comments.filter(
         (comment) => comment.id != commentToDelete
@@ -124,32 +109,38 @@ export default function ViewPostScreen() {
   };
 
   const setLikedAndBookmarkedStatus = async (): Promise<void> => {
-    const liked = await postIsLikedByUser(post_id, activeProfile.id);
-    const bookmarked = await postIsBookmarkedByUser(post_id, activeProfile.id);
+    const liked = await userPostEndpoint.postIsLikedByUser(
+      post_id,
+      activeProfile.id
+    );
+    const bookmarked = await userPostEndpoint.postIsBookmarkedByUser(
+      post_id,
+      activeProfile.id
+    );
     setLiked(liked);
     setBookmarked(bookmarked);
   };
 
   const handleLike = async () => {
-    await likePost(post_id, activeProfile.id);
+    await userPostEndpoint.likePost(post_id, activeProfile.id);
     setLiked(true);
   };
   const handleUnlike = async () => {
-    await unlikePost(post_id, activeProfile.id);
+    await userPostEndpoint.unlikePost(post_id, activeProfile.id);
     setLiked(false);
   };
 
   const handleUnbookmark = async (): Promise<void> => {
-    await unbookmarkPost(activeProfile.id, post_id);
+    await userPostEndpoint.unbookmarkPost(activeProfile.id, post_id);
     setBookmarked(false);
   };
   const handleBookmark = async (): Promise<void> => {
-    await bookmarkPost(activeProfile.id, post_id);
+    await userPostEndpoint.bookmarkPost(activeProfile.id, post_id);
     setBookmarked(true);
   };
 
   const handleDelete = async (): Promise<void> => {
-    const success = await deletePost(post_id);
+    const success = await postEndpoint.deletePost(post_id);
     if (!success) {
       showToast(`Failed to delete post, please try again later`);
     } else {
@@ -219,7 +210,7 @@ export default function ViewPostScreen() {
       {post.post_tags && (
         <View className='px-4 py-2'>
           <View className='flex-row flex-wrap gap-1'>
-            {post.post_tags?.map((tag) => (
+            {post.post_tags?.map((tag: any) => (
               <Tag key={tag.tag_id} tagName={tag.tags?.name ?? ''} />
             ))}
           </View>

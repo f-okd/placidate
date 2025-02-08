@@ -1,4 +1,4 @@
-import { TPost } from '@/utils/posts';
+import { TPost } from '@/utils/types';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';

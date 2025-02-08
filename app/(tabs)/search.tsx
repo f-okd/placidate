@@ -1,8 +1,9 @@
 import PostPreview from '@/components/PostPreview';
 import UserSearchResult from '@/components/UserSearchResult';
 import { useAuth } from '@/providers/AuthProvider';
-import { searchForPosts, searchForPostsByTag, TPost } from '@/utils/posts';
-import { searchForUsers, TProfile } from '@/utils/users';
+import SupabasePostEndpoint from '@/utils/supabase/PostEndpoint';
+import SupabaseUserEndpoint from '@/utils/supabase/UserEndpoint';
+import { TPost, TProfile } from '@/utils/types';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -43,6 +44,9 @@ export default function SearchScreen() {
   const [fetchedPostsByTag, setFetchedPostsByTag] = useState<TPost[]>([]);
   const [fetchedUsers, setFetchedUsers] = useState<TProfile[]>([]);
 
+  const postEndpoint = new SupabasePostEndpoint();
+  const userEndpoint = new SupabaseUserEndpoint();
+
   useEffect(() => {
     for (const [key, value] of Object.entries(SearchTerm)) {
       if (params.searchTerm === value) {
@@ -55,19 +59,25 @@ export default function SearchScreen() {
     switch (searchType) {
       case SearchTerm.USERS:
         setLoading(true);
-        const usersResult = await searchForUsers(activeProfile.id, searchText);
+        const usersResult = await userEndpoint.searchForUsers(
+          activeProfile.id,
+          searchText
+        );
         setFetchedUsers(usersResult);
         setLoading(false);
         break;
       case SearchTerm.POSTS:
         setLoading(true);
-        const postsResult = await searchForPosts(activeProfile.id, searchText);
+        const postsResult = await postEndpoint.searchForPosts(
+          activeProfile.id,
+          searchText
+        );
         setfFetchedPosts(postsResult);
         console.log(postsResult);
         setLoading(false);
       case SearchTerm.TAGS:
         setLoading(true);
-        const postsByTagResult = await searchForPostsByTag(
+        const postsByTagResult = await postEndpoint.searchForPostsByTag(
           activeProfile.id,
           searchText
         );

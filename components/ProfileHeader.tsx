@@ -1,13 +1,9 @@
-import { View, Text, Image, Button, TouchableOpacity } from 'react-native';
-import React, { useState } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
-import { TProfile } from '@/utils/posts';
-import { useFocusEffect, useRouter } from 'expo-router';
-import {
-  followUser,
-  unfollowUser,
-  userIsFollowing,
-} from '@/utils/userUserInteractions';
+import SupabaseUserUserInteractionEndpoint from '@/utils/supabase/UserUserInteractionEndpoint ';
+import { TProfile } from '@/utils/types';
+import { useRouter } from 'expo-router';
+import React from 'react';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
 
 interface IProfileHeader {
   profile: TProfile;
@@ -22,7 +18,6 @@ interface IProfileHeader {
 
 export default function ProfileHeader({
   profile,
-  currentlyLoggedInUser = false,
   postCount,
   isFollowing,
   followerCount,
@@ -33,10 +28,12 @@ export default function ProfileHeader({
   const router = useRouter();
   const { profile: activeProfile } = useAuth();
 
+  const userUserEndpoint = new SupabaseUserUserInteractionEndpoint();
+
   const handleFollow = async () => {
     if (!activeProfile) return;
     try {
-      await followUser(activeProfile.id, profile.id);
+      await userUserEndpoint.followUser(activeProfile.id, profile.id);
       onFollow(true);
       handleSetFollowerCount((prev) => prev + 1);
     } catch (error) {
@@ -47,7 +44,8 @@ export default function ProfileHeader({
   const handleUnfollow = async () => {
     if (!activeProfile) return;
     try {
-      await unfollowUser(activeProfile.id, profile.id);
+      const userUserEndpoint = new SupabaseUserUserInteractionEndpoint();
+      await userUserEndpoint.unfollowUser(activeProfile.id, profile.id);
       onFollow(false);
       handleSetFollowerCount((prev) => prev - 1);
     } catch (error) {

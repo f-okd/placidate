@@ -1,17 +1,18 @@
 import Post from '@/components/Post';
 import Header from '@/components/TopLevelHeader';
 import { useAuth } from '@/providers/AuthProvider';
-import { getRecommendedPosts, TGetHomePagePost, TProfile } from '@/utils/posts';
+import SupabasePostEndpoint from '@/utils/supabase/PostEndpoint';
 import { supabase } from '@/utils/supabase/client';
+import { TGetHomePagePost, TProfile } from '@/utils/types';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
   RefreshControl,
+  Text,
   TouchableOpacity,
   View,
-  Text,
 } from 'react-native';
 
 export default function HomeScreen() {
@@ -25,11 +26,16 @@ export default function HomeScreen() {
   const { profile: uncastedProfile } = useAuth();
   const activeProfile = uncastedProfile as TProfile;
 
+  const postEndpoint = new SupabasePostEndpoint();
+
   const getPosts = async (showLoadingState = true): Promise<void> => {
     if (showLoadingState) setLoading(true);
 
     try {
-      const posts = await getRecommendedPosts(activeProfile.id);
+      const posts =
+        activeSection == activeSectionType.RECOMMENDED
+          ? await postEndpoint.getRecommendedPosts(activeProfile.id)
+          : await postEndpoint.getFollowingPosts(activeProfile.id);
 
       setPosts(posts ?? []);
     } catch (error) {
@@ -44,6 +50,15 @@ export default function HomeScreen() {
     setRefreshing(true);
     getPosts(false);
   }, []);
+
+  const switchSection = async (targetSection: activeSectionType) => {
+    setLoading(true);
+    setRefreshing(true);
+    setActiveSection(targetSection);
+    await getPosts();
+    setLoading(false);
+    setRefreshing(false);
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -79,10 +94,14 @@ export default function HomeScreen() {
     <View className='flex-1 items-center justify-center bg-white'>
       <Header title='Placidate' showNotificationIcon={true} />
       <View className='flex-row w-full justify-center items-center gap-4'>
-        <TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => switchSection(activeSectionType.FOLLOWING)}
+        >
           <Text>Following</Text>
         </TouchableOpacity>
-        <TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => switchSection(activeSectionType.RECOMMENDED)}
+        >
           <Text>Recommended</Text>
         </TouchableOpacity>
       </View>

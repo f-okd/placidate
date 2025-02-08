@@ -1,7 +1,7 @@
-import { View, Text, TouchableOpacity, Image } from 'react-native';
-import React from 'react';
-import { Router } from 'expo-router';
 import { useAuth } from '@/providers/AuthProvider';
+import { Router } from 'expo-router';
+import React from 'react';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
 
 interface IUserSearchResult {
   id: string;

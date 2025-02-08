@@ -1,7 +1,6 @@
 import { supabase } from '@/utils/supabase/client';
 import { Database } from '@/utils/supabase/types';
-import { saveImage } from '@/utils/users';
-import { getProfile } from '@/utils/userUserInteractions';
+import SupabaseUserEndpoint from '@/utils/supabase/UserEndpoint';
 import { useRouter } from 'expo-router';
 import { createContext, ReactNode, useContext, useState } from 'react';
 
@@ -35,6 +34,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     useState<Database['public']['Tables']['profiles']['Row']>();
   const router = useRouter();
 
+  const userEndpoint = new SupabaseUserEndpoint();
+
   const signIn = async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -43,7 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     if (error) return console.error(error);
 
-    const profile = await getProfile(data.user.id);
+    const profile = await userEndpoint.getProfile(data.user.id);
 
     if (!profile)
       return console.error(
@@ -55,7 +56,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const refreshProfile = async (): Promise<void> => {
-    const prof = await getProfile(String(profile?.id));
+    const prof = await userEndpoint.getProfile(String(profile?.id));
 
     if (!prof)
       return console.error(
@@ -89,7 +90,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         'Error Signing Up: Could not update user and session'
       );
 
-    let profile = await getProfile(data.user.id);
+    let profile = await userEndpoint.getProfile(data.user.id);
 
     if (!profile)
       return console.error(
@@ -97,8 +98,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       );
 
     if (avatarUri) {
-      await saveImage(profile.id, avatarUri);
-      profile = await getProfile(data.user.id);
+      await userEndpoint.saveProfilePicture(profile.id, avatarUri);
+      profile = await userEndpoint.getProfile(data.user.id);
 
       if (!profile)
         return console.error(

@@ -1,11 +1,11 @@
-import { View, Text, ActivityIndicator, FlatList } from 'react-native';
-import React, { useCallback, useState } from 'react';
-import { TPost } from '@/utils/posts';
-import { router, useFocusEffect } from 'expo-router';
-import { useAuth } from '@/providers/AuthProvider';
-import { getBookmarks, TProfile } from '@/utils/users';
-import Header from '@/components/TopLevelHeader';
 import BookmarkedPostPreview from '@/components/BookmarkedPostPreview';
+import Header from '@/components/TopLevelHeader';
+import { useAuth } from '@/providers/AuthProvider';
+import SupabaseUserPostInteractionEndpoint from '@/utils/supabase/UserPostInteractionEndpoint';
+import { TPost, TProfile } from '@/utils/types';
+import { useFocusEffect } from 'expo-router';
+import React, { useCallback, useState } from 'react';
+import { ActivityIndicator, FlatList, Text, View } from 'react-native';
 
 export default function Bookmarks() {
   const [bookmarkedPosts, setBookmarkedPosts] = useState<TPost[]>([]);
@@ -13,10 +13,14 @@ export default function Bookmarks() {
   const { profile: uncastedProfile } = useAuth();
   const activeProfile = uncastedProfile as TProfile;
 
+  const userPostEndpoint = new SupabaseUserPostInteractionEndpoint();
+
   const loadBookmarks = async () => {
     setLoading(true);
     try {
-      const userBookmarks = await getBookmarks(activeProfile?.id);
+      const userBookmarks = await userPostEndpoint.getBookmarks(
+        activeProfile?.id
+      );
       setBookmarkedPosts(userBookmarks);
     } catch (error) {
       console.error('Error loading bookmarks:', error);

@@ -1,8 +1,7 @@
-import { View, Text, TouchableOpacity, Modal } from 'react-native';
-import React, { useState } from 'react';
-import { useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { blockUser } from '@/utils/userUserInteractions';
+import { useRouter } from 'expo-router';
+import React from 'react';
+import { Text, TouchableOpacity, View } from 'react-native';
 
 interface IHeaderProps {
   title: string;

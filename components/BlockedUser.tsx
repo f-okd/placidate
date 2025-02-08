@@ -1,7 +1,7 @@
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import React from 'react';
-import { TProfile } from '@/utils/users';
 import { Ionicons } from '@expo/vector-icons';
+import { TProfile } from '@/utils/types';
 
 interface IBlockedUser {
   profile: TProfile;

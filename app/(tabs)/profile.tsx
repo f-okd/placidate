@@ -1,24 +1,15 @@
-import Header from '@/components/TopLevelHeader';
 import OwnProfileHeader from '@/components/OwnProfileHeader';
 import PostPreview from '@/components/PostPreview';
+import Header from '@/components/TopLevelHeader';
 import { useAuth } from '@/providers/AuthProvider';
-import { TPost } from '@/utils/posts';
-import {
-  getPostsCreatedByUser,
-  getUserFollowCounts,
-  TProfile,
-} from '@/utils/users';
-import { useFocusEffect, useRouter } from 'expo-router';
+import SupabasePostEndpoint from '@/utils/supabase/PostEndpoint';
+import SupabaseUserEndpoint from '@/utils/supabase/UserEndpoint';
+import { TPost, TProfile } from '@/utils/types';
+import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  ImageSourcePropType,
-  View,
-} from 'react-native';
+import { ActivityIndicator, FlatList, View } from 'react-native';
 
 export default function ProfileScreen() {
-  const router = useRouter();
   const { profile: uncastedProfile } = useAuth();
 
   const [loading, setLoading] = useState(true);
@@ -29,14 +20,17 @@ export default function ProfileScreen() {
 
   const profile = uncastedProfile as TProfile;
 
+  const supabasePostEndpoint = new SupabasePostEndpoint();
+  const supabaseUserEndpoint = new SupabaseUserEndpoint();
+
   useFocusEffect(
     useCallback(() => {
       const loadProfileData = async () => {
         try {
           setLoading(true);
           const [{ followers, following }, posts] = await Promise.all([
-            getUserFollowCounts(profile.id),
-            getPostsCreatedByUser(profile.id),
+            supabaseUserEndpoint.getUserFollowCounts(profile.id),
+            supabasePostEndpoint.getPostsCreatedByUser(profile.id),
           ]);
 
           setFollowingCount(following);

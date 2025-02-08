@@ -1,9 +1,8 @@
-import { TCommentsAndAuthors } from '@/utils/posts';
+import { TCommentsAndAuthors } from '@/utils/types';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { deleteComment } from '@/utils/userPostInteractions';
 
 interface IComment {
   comment: TCommentsAndAuthors;

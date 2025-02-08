@@ -1,7 +1,8 @@
 import Tag from '@/components/Tag';
 import { useAuth } from '@/providers/AuthProvider';
 import { showToast } from '@/utils/helpers';
-import { createPost, TProfile } from '@/utils/posts';
+import SupabasePostEndpoint from '@/utils/supabase/PostEndpoint';
+import { TProfile } from '@/utils/types';
 import { useMemo, useState } from 'react';
 import { Modal, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import RadioGroup, { RadioButtonProps } from 'react-native-radio-buttons-group';
@@ -20,6 +21,8 @@ export default function CreateNewPostScreen() {
 
   const { profile: uncastedProfile } = useAuth();
   const activeProfile = uncastedProfile as TProfile;
+
+  const postEndpoint = new SupabasePostEndpoint();
 
   const resetAllFields = (): void => {
     setTitle('');
@@ -74,7 +77,7 @@ export default function CreateNewPostScreen() {
       showToast('Error: You need to add content to the post');
       return;
     }
-    createPost(
+    postEndpoint.createPost(
       activeProfile.id,
       title,
       description,
@@ -113,7 +116,7 @@ export default function CreateNewPostScreen() {
           className='text-black text-lg border-b border-gray-300 flex-1 p-2'
           aria-label='Title'
           onChangeText={(text: string) => setTitle(text)}
-          maxLength={16}
+          maxLength={20}
         />
       </View>
 

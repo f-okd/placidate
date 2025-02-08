@@ -1,9 +1,9 @@
-import { View } from 'react-native';
-import React from 'react';
-import PostPreview from './PostPreview';
-import { TPost } from '@/utils/posts';
+import SupabaseUserPostInteractionEndpoint from '@/utils/supabase/UserPostInteractionEndpoint';
+import { TPost } from '@/utils/types';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { unbookmarkPost } from '@/utils/userPostInteractions';
+import React from 'react';
+import { View } from 'react-native';
+import PostPreview from './PostPreview';
 
 interface IBookmarkedPostPreview {
   userId: string;
@@ -16,9 +16,11 @@ export default function BookmarkedPostPreview({
   post,
   onRemoveBookmark,
 }: IBookmarkedPostPreview) {
+  const userPostEndpoint = new SupabaseUserPostInteractionEndpoint();
+
   const handleUnbookmark = async () => {
     try {
-      await unbookmarkPost(userId, post.id);
+      await userPostEndpoint.unbookmarkPost(userId, post.id);
       onRemoveBookmark(post.id);
     } catch (error) {
       console.error('Error removing bookmark:', error);

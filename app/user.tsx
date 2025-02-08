@@ -1,17 +1,15 @@
 import Header from '@/components/OtherUserTopLevelHeader';
-import ProfileHeader from '@/components/ProfileHeader';
 import PostPreview from '@/components/PostPreview';
+import ProfileHeader from '@/components/ProfileHeader';
 import { Profile, useAuth } from '@/providers/AuthProvider';
-import { TPost } from '@/utils/posts';
-import {
-  getPostsCreatedByUser,
-  getUserFollowCounts,
-  TProfile,
-} from '@/utils/users';
-import { getProfile, userIsFollowing } from '@/utils/userUserInteractions';
+
+import SupabasePostEndpoint from '@/utils/supabase/PostEndpoint';
+import SupabaseUserEndpoint from '@/utils/supabase/UserEndpoint';
+import SupabaseUserUserInteractionEndpoint from '@/utils/supabase/UserUserInteractionEndpoint ';
+import { TPost, TProfile } from '@/utils/types';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Text, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { ActivityIndicator, FlatList, View } from 'react-native';
 
 export default function OtherUsersProfileScreen() {
   const { user_id } = useLocalSearchParams();
@@ -28,6 +26,10 @@ export default function OtherUsersProfileScreen() {
   const [followerCount, setFollowerCount] = useState<number>(0);
   const [followStatus, setFollowStatus] = useState<boolean>(false);
 
+  const userEndpoint = new SupabaseUserEndpoint();
+  const postEndpoint = new SupabasePostEndpoint();
+  const userUserEndpoint = new SupabaseUserUserInteractionEndpoint();
+
   useFocusEffect(
     useCallback(() => {
       /* Redirect to /profile if currentUser is viewing their own profile */
@@ -40,7 +42,7 @@ export default function OtherUsersProfileScreen() {
         try {
           setLoading(true);
           // 1.) Fetch and set profile
-          const profileData = await getProfile(String(user_id));
+          const profileData = await userEndpoint.getProfile(String(user_id));
           if (!profileData) {
             console.error('Could not find profile:', user_id);
             return router.back();
@@ -51,9 +53,12 @@ export default function OtherUsersProfileScreen() {
           // 2.) Fetch and set follow and post counts
           const [{ followers, following }, posts, followStatus] =
             await Promise.all([
-              getUserFollowCounts(profileData.id),
-              getPostsCreatedByUser(profileData.id),
-              userIsFollowing(activeProfile.id, String(user_id)),
+              userEndpoint.getUserFollowCounts(profileData.id),
+              postEndpoint.getPostsCreatedByUser(profileData.id),
+              userUserEndpoint.userIsFollowing(
+                activeProfile.id,
+                String(user_id)
+              ),
             ]);
 
           setFollowStatus(followStatus);

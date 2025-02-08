@@ -1,9 +1,9 @@
-import { View, Text, TouchableOpacity, Modal } from 'react-native';
-import React, { useState } from 'react';
-import { useRouter } from 'expo-router';
+import SupabaseUserUserInteractionEndpoint from '@/utils/supabase/UserUserInteractionEndpoint ';
+import { TProfile } from '@/utils/types';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { blockUser } from '@/utils/userUserInteractions';
-import { TProfile } from '@/utils/users';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { Modal, Text, TouchableOpacity, View } from 'react-native';
 
 interface IHeaderProps {
   currentlyLoggedInUser: TProfile;
@@ -17,9 +17,14 @@ export default function Header({
   const router = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
 
+  const userUserEndpoint = new SupabaseUserUserInteractionEndpoint();
+
   const handleBlock = async () => {
     try {
-      await blockUser(currentlyLoggedInUser.id, currentlyViewedUser.id);
+      await userUserEndpoint.blockUser(
+        currentlyLoggedInUser.id,
+        currentlyViewedUser.id
+      );
       setModalVisible(false);
       router.push('/(tabs)');
     } catch (error) {

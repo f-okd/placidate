@@ -1,10 +1,10 @@
-import { View, Text, Modal, TouchableOpacity } from 'react-native';
-import React, { useState } from 'react';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAuth } from '@/providers/AuthProvider';
-import { TProfile } from '@/utils/users';
-import { blockUser } from '@/utils/userUserInteractions';
-import { router, useRouter } from 'expo-router';
+import SupabaseUserUserInteractionEndpoint from '@/utils/supabase/UserUserInteractionEndpoint ';
+import { TProfile } from '@/utils/types';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { Modal, Text, TouchableOpacity, View } from 'react-native';
 
 interface IActionBar {
   authorId: string;
@@ -32,9 +32,11 @@ export default function ActionBar({
   const router = useRouter();
   const currentlyLoggedInUser = profile as TProfile;
 
+  const userUserEndpoint = new SupabaseUserUserInteractionEndpoint();
+
   const handleBlock = async () => {
     try {
-      await blockUser(currentlyLoggedInUser.id, authorId);
+      await userUserEndpoint.blockUser(currentlyLoggedInUser.id, authorId);
       setModalVisible(false);
       router.push('/(tabs)');
     } catch (error) {

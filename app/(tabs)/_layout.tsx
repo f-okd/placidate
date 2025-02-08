@@ -1,4 +1,3 @@
-import { useAuth } from '@/providers/AuthProvider';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';

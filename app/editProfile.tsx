@@ -1,13 +1,8 @@
 import Header from '@/components/TopLevelHeader';
 import { useAuth } from '@/providers/AuthProvider';
 import { showToast } from '@/utils/helpers';
-import {
-  changeUsername,
-  removeProfilePicture,
-  saveImage,
-  TProfile,
-  updateBio,
-} from '@/utils/users';
+import SupabaseUserEndpoint from '@/utils/supabase/UserEndpoint';
+import { TProfile } from '@/utils/types';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -30,6 +25,8 @@ export default function EditProfile() {
   const [newBio, setNewBio] = useState(activeProfile?.bio || '');
   const [loading, setLoading] = useState(false);
   const [image, setImage] = useState<string | null>(null);
+
+  const userEndpoint = new SupabaseUserEndpoint();
 
   /* Display the active profile's avatar if they have set a profile picture
       If they don't have a profile picture and have not just uploaded a new avatar, display the default avatar
@@ -56,7 +53,7 @@ export default function EditProfile() {
       const photo = result.assets[0];
       setLoading(true);
       setImage(photo.uri);
-      await saveImage(activeProfile.id, photo.uri);
+      await userEndpoint.saveProfilePicture(activeProfile.id, photo.uri);
       await refreshProfile();
       setLoading(false);
     } else {
@@ -66,7 +63,7 @@ export default function EditProfile() {
 
   const handleRemoveProfilePicture = async () => {
     setLoading(true);
-    const success = await removeProfilePicture(
+    const success = await userEndpoint.removeProfilePicture(
       activeProfile.id,
       Boolean(activeProfile.avatar_url || image)
     );
@@ -89,7 +86,7 @@ export default function EditProfile() {
 
     setLoading(true);
     try {
-      await changeUsername(activeProfile.id, newUsername.trim());
+      await userEndpoint.changeUsername(activeProfile.id, newUsername.trim());
       await refreshProfile();
       showToast('Username updated successfully');
     } catch (error) {
@@ -102,7 +99,7 @@ export default function EditProfile() {
   const handleBioChange = async () => {
     setLoading(true);
     try {
-      await updateBio(activeProfile.id, newBio.trim());
+      await userEndpoint.updateBio(activeProfile.id, newBio.trim());
       await refreshProfile();
       showToast('Username updated successfully');
     } catch (error) {

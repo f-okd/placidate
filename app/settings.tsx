@@ -1,7 +1,8 @@
 import Header from '@/components/TopLevelHeader';
 import { useAuth } from '@/providers/AuthProvider';
 import { showToast } from '@/utils/helpers';
-import { changePassword, deleteAccount, TProfile } from '@/utils/users';
+import SupabaseUserEndpoint from '@/utils/supabase/UserEndpoint';
+import { TProfile } from '@/utils/types';
 import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import {
@@ -25,6 +26,8 @@ export default function Settings() {
     useState<string>('1');
   const [loading, setLoading] = useState(false);
 
+  const userEndpoint = new SupabaseUserEndpoint();
+
   const handlePasswordChange = async () => {
     if (newPassword.length < 6) {
       showToast('Password must be at least 6 characters long');
@@ -38,7 +41,7 @@ export default function Settings() {
 
     setLoading(true);
     try {
-      await changePassword(newPassword);
+      await userEndpoint.changePassword(newPassword);
       showToast('Password updated successfully');
       setNewPassword('');
       setConfirmPassword('');
@@ -64,7 +67,9 @@ export default function Settings() {
           onPress: async () => {
             setLoading(true);
             try {
-              const success = await deleteAccount(activeProfile.id);
+              const success = await userEndpoint.deleteAccount(
+                activeProfile.id
+              );
               if (success) {
                 setLoading(false);
                 router.replace('/');

@@ -1,10 +1,10 @@
-import { View, Text, TouchableOpacity, Image } from 'react-native';
-import React from 'react';
-import { TGetPosts } from '@/app/(tabs)';
+import { TGetHomePagePost } from '@/utils/types';
 import { useRouter } from 'expo-router';
+import React from 'react';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
 import Tag from './Tag';
 
-export default function Post({ post }: { post: TGetPosts[number] }) {
+export default function Post({ post }: { post: TGetHomePagePost }) {
   if (!post) {
     return <View>Error: Post is missing</View>;
   } else if (!post.profiles) {
