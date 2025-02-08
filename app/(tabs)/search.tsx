@@ -73,7 +73,6 @@ export default function SearchScreen() {
           searchText
         );
         setfFetchedPosts(postsResult);
-        console.log(postsResult);
         setLoading(false);
       case SearchTerm.TAGS:
         setLoading(true);
@@ -82,7 +81,6 @@ export default function SearchScreen() {
           searchText
         );
         setFetchedPostsByTag(postsByTagResult);
-        console.log(postsByTagResult);
         setLoading(false);
       default:
         console.log('default search case');

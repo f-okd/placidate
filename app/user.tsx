@@ -47,7 +47,6 @@ export default function OtherUsersProfileScreen() {
             console.error('Could not find profile:', user_id);
             return router.back();
           }
-          console.log(profileData.username);
           setProfile(profileData);
 
           // 2.) Fetch and set follow and post counts
