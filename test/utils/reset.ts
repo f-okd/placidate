@@ -13,11 +13,10 @@ async function resetDatabase() {
       'blocks',
       'follows',
       'post_tags',
-      'Tags',
+      'tags',
       'likes',
       'comments',
       'posts',
-      'profiles',
     ];
 
     // Truncate tables in reverse order
@@ -33,10 +32,20 @@ async function resetDatabase() {
       console.log(`Truncated table ${tableName}`);
     }
 
+    // Delete profiles excluding Alice and Bob
+    const { error } = await resetClient
+      .from('profiles')
+      .delete()
+      .not('username', 'in', '(Alice,Bob)');
+
+    if (error) {
+      console.error(`Error truncating table profiles:`, error);
+      return;
+    }
+    console.log('Truncated table profiles (excluding Alice and Bob)');
+
     console.log('Database reset successful.');
   } catch (error) {
     console.error('Error resetting database:', error);
   }
 }
-
-resetDatabase();

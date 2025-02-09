@@ -38,7 +38,7 @@ async function seedData() {
         id: postId,
         author_id: userIds[Math.floor(Math.random() * userIds.length)],
         title: faker.lorem.sentence(4),
-        body: faker.lorem.paragraphs(2),
+        description: faker.lorem.paragraphs(2),
         post_type: 'poem',
       });
 
