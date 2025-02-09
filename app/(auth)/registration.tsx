@@ -1,37 +1,74 @@
-import { supabase } from '@/utils/supabase/supabase';
-import { Link, useRouter } from 'expo-router';
+import { useAuth } from '@/providers/AuthProvider';
+import { showToast } from '@/utils/helpers';
+import * as ImagePicker from 'expo-image-picker';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function RegistrationScreen() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [email, setEmail] = useState('a@a.com');
+  const [username, setUsername] = useState('testAccount');
+  const [password, setPassword] = useState('password123');
+  const [confirmPassword, setConfirmPassword] = useState('password123');
+  const [image, setImage] = useState<string | null>(null);
+
+  const { signUp } = useAuth();
 
   const handleSignUp = async () => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          username,
-          avatar_url: null,
-        },
-      },
-    });
-    if (error) {
-      console.error(error);
-      return;
+    if (confirmPassword == password) {
+      return signUp(email, password, username, image);
     }
-    router.push('/(tabs)');
+
+    showToast('Error: Passwords must be the same');
+  };
+
+  const imageToDisplay = image
+    ? image
+    : require('@/assets/images/default-avatar.jpg');
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      cameraType: ImagePicker.CameraType.front,
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets[0].fileName) {
+      const photo = result.assets[0];
+      setImage(photo.uri);
+    } else {
+      showToast('Error setting your profile picture');
+    }
   };
 
   return (
     <View className='flex-1 items-center justify-center bg-white'>
       <View className='w-full p-4'>
         <Text className='font-bold text-3xl text-center mb-4'>Register</Text>
+        {/*Avatar section */}
+        <View className='mb-6 items-center'>
+          {image ? (
+            <Image
+              source={{ uri: image }}
+              className='w-[150] h-[150] rounded-full'
+            />
+          ) : (
+            <Image
+              source={imageToDisplay}
+              className='w-[150] h-[150] rounded-full'
+            />
+          )}
+          <TouchableOpacity
+            className='text-xl mt-1 text-gray-600 mb-2'
+            onPress={pickImage}
+          >
+            <Text>Upload new avatar</Text>
+          </TouchableOpacity>
+        </View>
+
         <TextInput
           value={email}
           onChangeText={setEmail}

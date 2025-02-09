@@ -1,9 +1,8 @@
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Text } from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
-import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 
 export default function TabLayout() {
   return (
@@ -66,7 +65,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name='profile'
+        name={'profile'}
         options={{
           title: '',
           tabBarIcon: ({ focused }) => (

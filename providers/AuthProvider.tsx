@@ -1,15 +1,22 @@
-import { supabase } from '@/utils/supabase/supabase';
+import { supabase } from '@/utils/supabase/client';
 import { Database } from '@/utils/supabase/types';
+import SupabaseUserEndpoint from '@/utils/supabase/UserEndpoint';
 import { useRouter } from 'expo-router';
 import { createContext, ReactNode, useContext, useState } from 'react';
 
 export type Profile = Database['public']['Tables']['profiles']['Row'];
 
 interface AuthContextType {
-  profile: Profile | null;
+  profile: Profile | undefined | null;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, username: string) => Promise<void>;
+  signUp: (
+    email: string,
+    password: string,
+    username: string,
+    avatarUri: string | null
+  ) => Promise<void>;
   signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType>({
@@ -17,25 +24,17 @@ export const AuthContext = createContext<AuthContextType>({
   signIn: async () => {},
   signUp: async () => {},
   signOut: async () => {},
+  refreshProfile: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] =
-    useState<Database['public']['Tables']['profiles']>();
+    useState<Database['public']['Tables']['profiles']['Row']>();
   const router = useRouter();
 
-  const getProfile = async (id: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error) return console.error(error);
-    setProfile(data);
-  };
+  const userEndpoint = new SupabaseUserEndpoint();
 
   const signIn = async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -44,11 +43,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     if (error) return console.error(error);
-    getProfile(data.user.id);
+
+    const profile = await userEndpoint.getProfile(data.user.id);
+
+    if (!profile)
+      return console.error(
+        'Error signing in: Could not fetch profile for user ID'
+      );
+
+    setProfile(profile);
     router.push('/(tabs)');
   };
 
-  const signUp = async (email: string, password: string, username: string) => {
+  const refreshProfile = async (): Promise<void> => {
+    const prof = await userEndpoint.getProfile(String(profile?.id));
+
+    if (!prof)
+      return console.error(
+        'Error signing in: Could not fetch profile for user ID'
+      );
+
+    setProfile(prof);
+    router.push('/(tabs)/profile');
+  };
+
+  const signUp = async (
+    email: string,
+    password: string,
+    username: string,
+    avatarUri: string | null
+  ) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -60,19 +84,45 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       },
     });
     if (error) return console.error(error);
-    if (!data.user) return console.error('no user');
 
-    getProfile(data.user.id);
+    if (!data.user)
+      return console.error(
+        'Error Signing Up: Could not update user and session'
+      );
+
+    let profile = await userEndpoint.getProfile(data.user.id);
+
+    if (!profile)
+      return console.error(
+        'Error signing in: Could not fetch profile for user ID'
+      );
+
+    if (avatarUri) {
+      await userEndpoint.saveProfilePicture(profile.id, avatarUri);
+      profile = await userEndpoint.getProfile(data.user.id);
+
+      if (!profile)
+        return console.error(
+          'Error signing in: Could not fetch profile for user ID'
+        );
+    }
+
+    setProfile(profile);
     router.push('/(tabs)');
   };
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) return console.error(error);
+    router.dismissAll();
+    router.replace('/(auth)');
+    setProfile(undefined);
   };
 
   return (
-    <AuthContext.Provider value={{ profile, signIn, signUp, signOut }}>
+    <AuthContext.Provider
+      value={{ profile, signIn, signUp, signOut, refreshProfile }}
+    >
       {children}
     </AuthContext.Provider>
   );

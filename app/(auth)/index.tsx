@@ -5,22 +5,9 @@ import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('a@a.com');
+  const [password, setPassword] = useState('password123');
   const { signIn } = useAuth();
-
-  // const handleLogin = async () => {
-  //   const { data, error } = await supabase.auth.signInWithPassword({
-  //     email,
-  //     password,
-  //   });
-
-  //   if (error) {
-  //     console.error(error);
-  //     return;
-  //   }
-  //   router.push('/(tabs)');
-  // };
 
   return (
     <View className='flex-1 items-center justify-center bg-white'>
