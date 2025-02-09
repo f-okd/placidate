@@ -1,6 +1,6 @@
-import { supabase } from '@/utils/supabase/client';
-import { Database } from '@/utils/supabase/types';
-import SupabaseUserEndpoint from '@/utils/supabase/UserEndpoint';
+import { supabase } from '@/lib/supabase/client';
+import { Database } from '@/lib/supabase/types';
+import SupabaseUserEndpoint from '@/lib/supabase/UserEndpoint';
 import { useRouter } from 'expo-router';
 import { createContext, ReactNode, useContext, useState } from 'react';
 

@@ -1,5 +1,5 @@
 // import { render, screen, fireEvent } from '../__utils__/customRenderer.ts';
-import { render, screen, fireEvent } from '@/utils/customRenderer';
+import { render, screen, fireEvent } from '@/test/__utils__/customRenderer';
 import Post from '../../components/Post';
 import { TGetHomePagePost } from '@/utils/types';
 

@@ -1,4 +1,4 @@
-import SupabaseUserPostInteractionEndpoint from '@/utils/supabase/UserPostInteractionEndpoint';
+import SupabaseUserPostInteractionEndpoint from '@/lib/supabase/UserPostInteractionEndpoint';
 import { TPost } from '@/utils/types';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import React from 'react';

@@ -1,8 +1,8 @@
 import Post from '@/components/Post';
 import Header from '@/components/TopLevelHeader';
 import { useAuth } from '@/providers/AuthProvider';
-import SupabasePostEndpoint from '@/utils/supabase/PostEndpoint';
-import { supabase } from '@/utils/supabase/client';
+import SupabasePostEndpoint from '@/lib/supabase/PostEndpoint';
+import { supabase } from '@/lib/supabase/client';
 import { TGetHomePagePost, TProfile } from '@/utils/types';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';

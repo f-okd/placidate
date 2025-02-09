@@ -3,9 +3,9 @@ import PostPreview from '@/components/PostPreview';
 import ProfileHeader from '@/components/ProfileHeader';
 import { Profile, useAuth } from '@/providers/AuthProvider';
 
-import SupabasePostEndpoint from '@/utils/supabase/PostEndpoint';
-import SupabaseUserEndpoint from '@/utils/supabase/UserEndpoint';
-import SupabaseUserUserInteractionEndpoint from '@/utils/supabase/UserUserInteractionEndpoint ';
+import SupabasePostEndpoint from '@/lib/supabase/PostEndpoint';
+import SupabaseUserEndpoint from '@/lib/supabase/UserEndpoint';
+import SupabaseUserUserInteractionEndpoint from '@/lib/supabase/UserUserInteractionEndpoint ';
 import { TPost, TProfile } from '@/utils/types';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';

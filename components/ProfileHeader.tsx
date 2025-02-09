@@ -1,5 +1,5 @@
 import { useAuth } from '@/providers/AuthProvider';
-import SupabaseUserUserInteractionEndpoint from '@/utils/supabase/UserUserInteractionEndpoint ';
+import SupabaseUserUserInteractionEndpoint from '@/lib/supabase/UserUserInteractionEndpoint ';
 import { TProfile } from '@/utils/types';
 import { useRouter } from 'expo-router';
 import React from 'react';
