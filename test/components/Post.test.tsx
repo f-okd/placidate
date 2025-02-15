@@ -1,11 +1,9 @@
-// import { render, screen, fireEvent } from '../__utils__/customRenderer.ts';
 import { render, screen, fireEvent } from '@/test/__utils__/customRenderer';
 import Post from '../../components/Post';
 import { TGetHomePagePost } from '@/utils/types';
 
 const mockNavigate = jest.fn();
 
-// Mock the router
 jest.mock('expo-router', () => ({
   useRouter: () => ({
     push: mockNavigate,

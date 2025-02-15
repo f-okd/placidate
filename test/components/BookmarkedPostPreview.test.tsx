@@ -1,21 +1,15 @@
 //@ts-nocheck
-
-// BookmarkedPostPreview.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import BookmarkedPostPreview from '@/components/BookmarkedPostPreview';
 import { TPost } from '@/utils/types';
 
-// Mock @expo/vector-icons
-jest.mock('@expo/vector-icons/Ionicons', () => 'Ionicons');
-
-// Mock the UserPostInteractionEndpoint module
 jest.mock('@/lib/supabase/UserPostInteractionEndpoint', () => {
   return jest.fn().mockImplementation(() => ({
     unbookmarkPost: jest.fn().mockResolvedValue(undefined),
   }));
 });
 
-// Mock the PostPreview component
+// Mock nested PostPreview component
 jest.mock('@/components/PostPreview', () => {
   return jest
     .fn()

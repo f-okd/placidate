@@ -6,5 +6,7 @@ class MockSupabaseUserUserInteractionEndpoint {
   unblockUser = jest.fn();
   getBlockedUsers = jest.fn();
 }
+export const getMockSupabaseUserUserInteractionEndpoint = () =>
+  new MockSupabaseUserUserInteractionEndpoint();
 
 export default MockSupabaseUserUserInteractionEndpoint;
