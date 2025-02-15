@@ -23,6 +23,15 @@ const mockComment: TCommentsAndAuthors = {
   deletable: true,
 };
 
+const mockNavigate = jest.fn();
+
+// Mock the router
+jest.mock('expo-router', () => ({
+  useRouter: () => ({
+    push: mockNavigate,
+  }),
+}));
+
 describe('comment', () => {
   const mockProps = {
     comment: mockComment,
@@ -46,7 +55,6 @@ describe('comment', () => {
       ...mockProps,
       comment: { ...mockProps.comment, deletable: false },
     };
-    console.log(mockProps2);
     render(<Comment {...mockProps2} />);
 
     expect(screen.queryByTestId('delete-button')).toBeNull();
@@ -57,5 +65,12 @@ describe('comment', () => {
     const deleteButton = screen.getByTestId('delete-button');
     fireEvent.press(deleteButton);
     expect(mockDelete).toHaveBeenCalledWith('test-comment-id');
+  });
+  it('should navigate to comment authors profile when their username is clicked', () => {
+    render(<Comment {...mockProps} />);
+
+    const username = screen.getByTestId('clickable-username');
+    fireEvent.press(username);
+    expect(mockNavigate).toHaveBeenCalledWith('/user?user_id=test-user-id');
   });
 });
