@@ -6,41 +6,39 @@ import { Text, TouchableOpacity, View } from 'react-native';
 
 interface IComment {
   comment: TCommentsAndAuthors;
-  handleDelete: (comment_id: string) => void;
+  onDelete: (comment_id: string) => void;
 }
 
-export default function Comment({ comment, handleDelete }: IComment) {
+export default function Comment({ comment, onDelete }: IComment) {
   const { profiles: profile } = comment;
   const { user_id: author_id } = comment;
   const router = useRouter();
 
+  if (!profile) return <Text className='font-bold'>A user: </Text>;
+
   return (
     <View className='flex-row gap-2 items center w-full m-1'>
-      {/*Error handling in case the comments and profile join in getCommentsAndAuthors fails.
-       Typescript suggests we could end up with a null profiles object 
-       but it I believe an error will be thrown if it fails but this is just to satisfy the compiler*/}
       <View className='w-[99%]'>
-        {profile?.username ? (
-          <View className='flex-row justify-between items-center  '>
-            <TouchableOpacity
-              onPress={() => router.push(`/user?user_id=${author_id}`)}
-            >
-              <Text className='font-bold'>{profile.username}: </Text>
-            </TouchableOpacity>
-            {comment.deletable ? (
-              <Ionicons
-                name='trash-outline'
-                size={15}
-                color='black'
-                onPress={() => handleDelete(comment.id)}
-              />
-            ) : (
-              <></>
-            )}
-          </View>
-        ) : (
-          <Text className='font-bold'>A user: </Text>
-        )}
+        <View className='flex-row justify-between items-center'>
+          <TouchableOpacity
+            onPress={() => router.push(`/user?user_id=${author_id}`)}
+          >
+            <Text testID='clickable-username' className='font-bold'>
+              {profile.username}:{' '}
+            </Text>
+          </TouchableOpacity>
+          {comment.deletable ? (
+            <Ionicons
+              testID='delete-button'
+              name='trash-outline'
+              size={15}
+              color='black'
+              onPress={() => onDelete(comment.id)}
+            />
+          ) : (
+            <></>
+          )}
+        </View>
         <Text>{comment.body}</Text>
       </View>
     </View>

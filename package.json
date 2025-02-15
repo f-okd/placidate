@@ -9,10 +9,14 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest",
+    "watch": "jest --watch",
     "lint": "expo lint"
   },
   "jest": {
-    "preset": "jest-expo"
+    "preset": "jest-expo",
+    "setupFiles": [
+      "<rootDir>/test/jest.setup.js"
+    ]
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.2",

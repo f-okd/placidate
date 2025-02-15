@@ -40,3 +40,4 @@ app-example
 notes.*
 
 secrets.ts
+coverage

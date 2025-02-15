@@ -2,7 +2,7 @@ import BlockedUser from '@/components/BlockedUser';
 import Header from '@/components/TopLevelHeader';
 import { useAuth } from '@/providers/AuthProvider';
 import { showToast } from '@/utils/helpers';
-import SupabaseUserUserInteractionEndpoint from '@/lib/supabase/UserUserInteractionEndpoint ';
+import SupabaseUserUserInteractionEndpoint from '@/lib/supabase/UserUserInteractionEndpoint';
 import { TProfile } from '@/utils/types';
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useState } from 'react';

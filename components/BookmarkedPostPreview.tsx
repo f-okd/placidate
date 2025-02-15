@@ -2,7 +2,7 @@ import SupabaseUserPostInteractionEndpoint from '@/lib/supabase/UserPostInteract
 import { TPost } from '@/utils/types';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import React from 'react';
-import { Touchable, TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import PostPreview from './PostPreview';
 
 interface IBookmarkedPostPreview {
@@ -35,13 +35,14 @@ export default function BookmarkedPostPreview({
       <View className='flex-1' testID='post-preview-container'>
         <PostPreview post={post} />
       </View>
-      <TouchableOpacity
+      <Ionicons
         testID='unbookmark-button'
-        className='ml-2'
+        name='trash-outline'
+        size={36}
+        color='black'
         onPress={handleUnbookmark}
-      >
-        <Ionicons name='trash-outline' size={36} color='black' />
-      </TouchableOpacity>
+        className='ml-2'
+      />
     </View>
   );
 }
