@@ -38,8 +38,8 @@ Follow **ALL** these instructions for the best results: [React Native | Setup En
     npm start
    ```
 
-6. Press 'a' key to open using android emulator, or scan the QR code on the Expo Go app (Android)
-   - If you're using Expo-Go like I am, make sure your mobile device and PC are on the same network.
+6. Press 'a' key to open using android emulator, or scan the QR code on the Expo Go app (Android), or connect mobile phone to computer with usb and press 'a'
+   - If you're using Expo-Go like I am, make sure your mobile device and PC are on the same network (Whether you are using emulator or personal device).
 
 In the output, you'll find options to open the app in a
 
