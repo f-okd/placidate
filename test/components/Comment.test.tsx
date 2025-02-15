@@ -46,7 +46,7 @@ describe('comment', () => {
     render(<Comment {...mockProps} />);
 
     expect(screen.getByTestId('clickable-username')).toHaveTextContent(
-      'commentTest-user:'
+      mockComment.profiles?.username + ':'
     );
     expect(screen.getByTestId('delete-button')).toBeTruthy();
   });
@@ -64,13 +64,15 @@ describe('comment', () => {
 
     const deleteButton = screen.getByTestId('delete-button');
     fireEvent.press(deleteButton);
-    expect(mockDelete).toHaveBeenCalledWith('test-comment-id');
+    expect(mockDelete).toHaveBeenCalledWith(mockComment.id);
   });
   it('should navigate to comment authors profile when their username is clicked', () => {
     render(<Comment {...mockProps} />);
 
     const username = screen.getByTestId('clickable-username');
     fireEvent.press(username);
-    expect(mockNavigate).toHaveBeenCalledWith('/user?user_id=test-user-id');
+    expect(mockNavigate).toHaveBeenCalledWith(
+      `/user?user_id=${mockComment.user_id}`
+    );
   });
 });
