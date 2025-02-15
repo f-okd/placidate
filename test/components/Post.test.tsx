@@ -62,6 +62,6 @@ describe('Post Component', () => {
     const postContent = screen.getByText('Test post body content');
     fireEvent.press(postContent);
 
-    expect(mockNavigate).toHaveBeenCalledWith('/post?post_id=test-post-id');
+    expect(mockNavigate).toHaveBeenCalledWith(`/post?post_id=${mockPost.id}`);
   });
 });
