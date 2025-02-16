@@ -18,7 +18,7 @@ const mockProps = {
 };
 
 describe('TopLevelHeader', () => {
-  it('renders correctly', () => {
+  it('successfully renders component with correct information', () => {
     render(<Header {...mockProps} />);
     expect(screen.getByTestId('title')).toHaveTextContent('test-header');
     expect(screen.queryByTestId('back-button')).toBeNull();

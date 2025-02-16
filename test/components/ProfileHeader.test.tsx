@@ -36,7 +36,7 @@ describe('ProfileHeader', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly', () => {
+  it('successfully renders component with correct information', () => {
     render(<ProfileHeader {...mockProps} />);
 
     expect(screen.getByTestId('follower-count')).toHaveTextContent('50');

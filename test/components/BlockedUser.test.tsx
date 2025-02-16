@@ -21,7 +21,7 @@ describe('BlockedUser', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly', () => {
+  it('successfully renders component with correct information', () => {
     render(<BlockedUser {...mockProps} />);
 
     expect(screen.getByTestId('blocked-user-avatar')).toBeTruthy();

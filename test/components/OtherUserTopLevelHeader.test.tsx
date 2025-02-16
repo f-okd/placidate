@@ -48,7 +48,7 @@ describe('comment', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly', () => {
+  it('successfully renders component with correct information', () => {
     render(<Header {...mockProps} />);
 
     expect(screen.getByTestId('username')).toHaveTextContent(

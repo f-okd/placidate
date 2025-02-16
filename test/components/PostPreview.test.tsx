@@ -22,7 +22,7 @@ const mockPost: TPost = {
 };
 
 describe('PostPreview', () => {
-  it('renders correctly', () => {
+  it('successfully renders component with correct information', () => {
     render(<PostPreview post={mockPost} />);
 
     expect(screen.getByTestId('post-view')).toBeTruthy();

@@ -25,7 +25,7 @@ const mockProps = {
 };
 
 describe('FollowerListSearchResult', () => {
-  it('renders correctly', () => {
+  it('successfully renders component with correct information', () => {
     render(<FollowerListSearchResult {...mockProps} />);
 
     expect(screen.getByTestId('search-result')).toBeTruthy();
