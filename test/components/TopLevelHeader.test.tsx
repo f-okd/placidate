@@ -14,7 +14,7 @@ const mockProps = {
   title: 'test-header',
   showBackIcon: false,
   showNotificationIcon: false,
-  isProfilePage: false,
+  isProfileScreen: false,
 };
 
 describe('TopLevelHeader', () => {
@@ -40,11 +40,11 @@ describe('TopLevelHeader', () => {
     expect(screen.getByTestId('notifications-button')).toBeTruthy();
   });
   it('shows settings button when viewing self profile (option enabled)', () => {
-    render(<Header {...{ ...mockProps, isProfilePage: true }} />);
+    render(<Header {...{ ...mockProps, isProfileScreen: true }} />);
     expect(screen.getByTestId('settings-button')).toBeTruthy();
   });
   it('navigates to the settings page when settings button is clicked', () => {
-    render(<Header {...{ ...mockProps, isProfilePage: true }} />);
+    render(<Header {...{ ...mockProps, isProfileScreen: true }} />);
 
     const settingsIcon = screen.getByTestId('settings-button');
     fireEvent.press(settingsIcon);

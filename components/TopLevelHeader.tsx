@@ -7,14 +7,14 @@ interface IHeaderProps {
   title: string;
   showBackIcon?: boolean;
   showNotificationIcon?: boolean;
-  isProfilePage?: boolean;
+  isProfileScreen?: boolean;
 }
 
 export default function Header({
   title,
   showBackIcon = false,
   showNotificationIcon = false,
-  isProfilePage = false,
+  isProfileScreen = false,
 }: IHeaderProps) {
   const router = useRouter();
 
@@ -42,7 +42,7 @@ export default function Header({
           </TouchableOpacity>
         )}
 
-        {isProfilePage && (
+        {isProfileScreen && (
           <TouchableOpacity
             testID='settings-button'
             onPress={() => router.push('/settings')}

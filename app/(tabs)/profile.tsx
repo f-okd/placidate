@@ -67,7 +67,7 @@ export default function ProfileScreen() {
 
   return (
     <View className='flex-1 bg-white'>
-      <Header title={profile.username} showBackIcon isProfilePage />
+      <Header title={profile.username} showBackIcon isProfileScreen />
       <OwnProfileHeader
         postCount={postCount}
         followingCount={followingCount}
