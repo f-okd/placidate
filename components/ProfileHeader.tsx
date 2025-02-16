@@ -33,18 +33,30 @@ export default function ProfileHeader({
     <View className='border-b pb-5 border-gray-200 px-10'>
       <View className='flex-row items-center justify-between'>
         <Image source={imageToDisplay} style={profilePictureImageStyle} />
-        <View>
+        <TouchableOpacity
+          onPress={() =>
+            router.push(
+              `/followers?user_id=${profile.id}&username=${profile.username}`
+            )
+          }
+        >
           <Text testID='follower-count' className='font-bold text-xl'>
             {followerCount}
           </Text>
           <Text testID='follower-label'>Followers</Text>
-        </View>
-        <View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() =>
+            router.push(
+              `/following?user_id=${profile.id}&username=${profile.username}`
+            )
+          }
+        >
           <Text testID='following-count' className='font-bold text-xl'>
             {followingCount}
           </Text>
           <Text testID='following-label'>Following</Text>
-        </View>
+        </TouchableOpacity>
         <View>
           <Text testID='post-count' className='font-bold text-xl'>
             {postCount}

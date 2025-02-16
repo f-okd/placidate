@@ -17,6 +17,7 @@ class SupabaseUserUserInteractionEndpoint {
     followerUserId: string,
     followingUserId: string
   ): Promise<void> {
+    console.log(followerUserId, followingUserId);
     const { error } = await supabase
       .from('follows')
       .delete()
@@ -116,6 +117,31 @@ class SupabaseUserUserInteractionEndpoint {
     }
 
     return (data?.map((block) => block.blocked) as TProfile[]) || [];
+  }
+
+  async removeFollower(
+    currentUserId: string,
+    followerToRemoveId: string
+  ): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('follows')
+        .delete()
+        .eq('follower_id', followerToRemoveId)
+        .eq('following_id', currentUserId);
+
+      if (error) {
+        console.error(
+          `Error removing follower. Follower: ${followerToRemoveId}, Following: ${currentUserId} `
+        );
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Unexpected error in removeFollower:', error);
+      return false;
+    }
   }
 }
 
