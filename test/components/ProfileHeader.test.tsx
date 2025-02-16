@@ -53,12 +53,37 @@ describe('ProfileHeader', () => {
 
     expect(screen.getByTestId('follow-button')).toHaveTextContent('Follow');
   });
+  it('does not show the option to message user if not following user', () => {
+    render(<ProfileHeader {...{ ...mockProps, isFollowing: false }} />);
+
+    expect(screen.queryByTestId('message-button')).toBeNull();
+  });
   it('should navigate to inbox if user clicks to message other user option to follow user if not already following user', () => {
     render(<ProfileHeader {...mockProps} />);
 
     const messageButton = screen.getByTestId('message-button');
     fireEvent.press(messageButton);
     expect(mockNavigate).toHaveBeenCalledWith('/inbox');
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+  it('should navigate to own follower list if user presses followers ', () => {
+    render(<ProfileHeader {...mockProps} />);
+
+    const followersButton = screen.getByTestId('followers-section');
+    fireEvent.press(followersButton);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      `/followers?user_id=${mockProps.profile.id}&username=${mockProps.profile.username}`
+    );
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+  it('should navigate to own following list if user presses following ', () => {
+    render(<ProfileHeader {...mockProps} />);
+
+    const followingButton = screen.getByTestId('following-section');
+    fireEvent.press(followingButton);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      `/following?user_id=${mockProps.profile.id}&username=${mockProps.profile.username}`
+    );
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 });

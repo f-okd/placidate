@@ -29,16 +29,22 @@ export default function OwnProfileHeader({
       <View className='flex-row items-center justify-between  '>
         <Image source={imageToDisplay} style={profilePictureImageStyle} />
         <TouchableOpacity
+          testID='followers-section'
           onPress={() => router.push(`/followers?user_id=${id}`)}
         >
-          <Text className='font-bold text-xl'>{followerCount}</Text>
-          <Text>Followers</Text>
+          <Text testID='follower-count' className='font-bold text-xl'>
+            {followerCount}
+          </Text>
+          <Text testID='followers-label'>Followers</Text>
         </TouchableOpacity>
         <TouchableOpacity
+          testID='following-section'
           onPress={() => router.push(`/following?user_id=${id}`)}
         >
-          <Text className='font-bold text-xl'>{followingCount}</Text>
-          <Text>Following</Text>
+          <Text testID='following-count' className='font-bold text-xl'>
+            {followingCount}
+          </Text>
+          <Text testID='following-label'>Following</Text>
         </TouchableOpacity>
         <View>
           <Text className='font-bold text-xl'>{postCount}</Text>
@@ -49,6 +55,7 @@ export default function OwnProfileHeader({
       {/*Section for follow/unfollow or edit profile button*/}
       <View className='pt-2 gap-2 flex-row'>
         <TouchableOpacity
+          testID='edit-profile-button'
           className='bg-gray-800 w-[24%] p-2 rounded-lg'
           onPress={() => router.push('/editProfile')}
         >

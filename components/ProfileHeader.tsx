@@ -34,6 +34,7 @@ export default function ProfileHeader({
       <View className='flex-row items-center justify-between'>
         <Image source={imageToDisplay} style={profilePictureImageStyle} />
         <TouchableOpacity
+          testID='followers-section'
           onPress={() =>
             router.push(
               `/followers?user_id=${profile.id}&username=${profile.username}`
@@ -46,6 +47,7 @@ export default function ProfileHeader({
           <Text testID='follower-label'>Followers</Text>
         </TouchableOpacity>
         <TouchableOpacity
+          testID='following-section'
           onPress={() =>
             router.push(
               `/following?user_id=${profile.id}&username=${profile.username}`
@@ -76,13 +78,15 @@ export default function ProfileHeader({
               {isFollowing ? 'Unfollow' : 'Follow'}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            testID='message-button'
-            className='bg-gray-800 w-[22%] p-2 rounded-lg'
-            onPress={() => router.push('/inbox')}
-          >
-            <Text className='text-white text-center'>Message</Text>
-          </TouchableOpacity>
+          {isFollowing && (
+            <TouchableOpacity
+              testID='message-button'
+              className='bg-gray-800 w-[22%] p-2 rounded-lg'
+              onPress={() => router.push('/inbox')}
+            >
+              <Text className='text-white text-center'>Message</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </View>
