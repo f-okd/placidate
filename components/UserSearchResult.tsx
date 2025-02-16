@@ -28,10 +28,12 @@ export default function UserSearchResult({
   return (
     <View className='flex-row gap 2'>
       <TouchableOpacity
+        testID='search-result'
         className='flex-row items-center p-2'
         onPress={() => navigateToProfile()}
       >
         <Image
+          testID='avatar'
           source={
             avatarUrl
               ? { uri: avatarUrl }
@@ -39,7 +41,9 @@ export default function UserSearchResult({
           }
           style={profilePictureImageStyle}
         />
-        <Text className='p-2 font-bold'>{username}</Text>
+        <Text testID='username' className='p-2 font-bold'>
+          {username}
+        </Text>
       </TouchableOpacity>
     </View>
   );
