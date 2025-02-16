@@ -246,7 +246,7 @@ export default function ViewPostScreen() {
         <FlatList
           data={comments}
           renderItem={({ item }) => (
-            <Comment comment={item} handleDelete={handleDeleteComment} />
+            <Comment comment={item} onDelete={handleDeleteComment} />
           )}
           keyExtractor={(item) => item.id}
           ListHeaderComponent={renderHeader}

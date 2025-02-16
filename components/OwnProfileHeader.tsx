@@ -7,6 +7,7 @@ interface IProfileHeader {
   followerCount: number;
   followingCount: number;
   avatar: string | null;
+  id: string;
 }
 
 export default function OwnProfileHeader({
@@ -14,6 +15,7 @@ export default function OwnProfileHeader({
   followerCount,
   followingCount,
   avatar,
+  id,
 }: IProfileHeader) {
   const router = useRouter();
 
@@ -26,14 +28,18 @@ export default function OwnProfileHeader({
       {/*Section for profile picture and post, follower, following counts */}
       <View className='flex-row items-center justify-between  '>
         <Image source={imageToDisplay} style={profilePictureImageStyle} />
-        <View>
+        <TouchableOpacity
+          onPress={() => router.push(`/followers?user_id=${id}`)}
+        >
           <Text className='font-bold text-xl'>{followerCount}</Text>
           <Text>Followers</Text>
-        </View>
-        <View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => router.push(`/following?user_id=${id}`)}
+        >
           <Text className='font-bold text-xl'>{followingCount}</Text>
           <Text>Following</Text>
-        </View>
+        </TouchableOpacity>
         <View>
           <Text className='font-bold text-xl'>{postCount}</Text>
           <Text>Posts</Text>

@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
-import { TPost, TProfile } from '../types';
+
 import { supabase } from './client';
+import { TProfile } from '@/utils/types';
 
 const PLACIDATE_SERVER_BASE_URL = 'http://10.0.2.2:8000';
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
@@ -261,6 +262,69 @@ class SupabaseUserEndpoint {
 
     if (error) return console.error(error);
     return data;
+  }
+
+  async getFollowers(userId: string): Promise<TProfile[]> {
+    try {
+      // Get all users who follow the specified user
+      const { data, error } = await supabase
+        .from('follows')
+        .select(
+          `
+          follower:profiles!follows_follower_id_fkey (
+            id,
+            username,
+            avatar_url,
+            bio,
+            is_private,
+            updated_at
+          )
+        `
+        )
+        .eq('following_id', userId)
+        .eq('status', 'accepted');
+
+      if (error) {
+        console.error('Error fetching followers:', error);
+        return [];
+      }
+
+      return (data?.map((item) => item.follower) as TProfile[]) || [];
+    } catch (error) {
+      console.error('Error in getFollowers:', error);
+      return [];
+    }
+  }
+
+  async getFollowing(userId: string): Promise<TProfile[]> {
+    try {
+      const { data, error } = await supabase
+        .from('follows')
+        .select(
+          `
+          following:profiles!follows_following_id_fkey (
+            id,
+            username,
+            avatar_url,
+            bio,
+            is_private,
+            updated_at
+          )
+        `
+        )
+        .eq('follower_id', userId)
+        .eq('status', 'accepted');
+
+      if (error) {
+        console.error('Error fetching following:', error);
+        return [];
+      }
+
+      return (data?.map((item) => item.following) as TProfile[]) || [];
+    } catch (error) {
+      console.error('Error in getFollowing:', error);
+      return [];
+    }
   }
 }
 

@@ -7,6 +7,8 @@ class MockSupabaseUserEndpoint {
   deleteAccount = jest.fn();
   saveProfilePicture = jest.fn();
   removeProfilePicture = jest.fn();
+  getFollowers = jest.fn();
+  getFollowing = jest.fn();
   getProfile = jest.fn();
 }
 
