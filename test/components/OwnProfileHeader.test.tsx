@@ -35,7 +35,9 @@ describe('ProfileHeader', () => {
     expect(screen.getByTestId('following-label')).toHaveTextContent(
       'Following'
     );
-    expect(screen.getByTestId);
+    expect(screen.getByTestId('edit-profile-button')).toHaveTextContent(
+      'Edit profile'
+    );
   });
   it('should navigate to own follower list if user presses followers ', () => {
     render(<OwnProfileHeader {...mockProps} />);
