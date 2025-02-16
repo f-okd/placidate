@@ -13,6 +13,7 @@ export default function BlockedUser({ profile, onUnblock }: IBlockedUser) {
     <View className='flex-row items-center justify-between py-4 px-2 border-b border-gray-200'>
       <View className='flex-row items-center flex-1'>
         <Image
+          testID='blocked-user-avatar'
           source={
             profile.avatar_url
               ? { uri: profile.avatar_url }
@@ -21,10 +22,16 @@ export default function BlockedUser({ profile, onUnblock }: IBlockedUser) {
           className='w-12 h-12 rounded-full'
         />
         <View className='ml-3'>
-          <Text className='font-semibold text-lg'>{profile.username}</Text>
+          <Text
+            testID='blocked-user-username'
+            className='font-semibold text-lg'
+          >
+            {profile.username}
+          </Text>
         </View>
       </View>
       <TouchableOpacity
+        testID='unblock-button'
         onPress={() => onUnblock(profile.id)}
         className='ml-4 p-2'
       >

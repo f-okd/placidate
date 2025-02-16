@@ -8,6 +8,7 @@ interface ITag {
 export default function Tag({ tagName, onRemoveTag }: ITag) {
   return (
     <TouchableOpacity
+      testID='tag'
       key={tagName}
       className='bg-gray-200 rounded-md px-1 py-[0.5]'
       onPress={onRemoveTag ? () => onRemoveTag(tagName) : () => {}}

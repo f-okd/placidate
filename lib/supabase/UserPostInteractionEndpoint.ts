@@ -1,5 +1,5 @@
+import { TPost } from '@/utils/types';
 import { supabase } from './client';
-import { TPost } from '../types';
 
 class SupabaseUserPostInteractionEndpoint {
   async addComment(

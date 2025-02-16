@@ -1,4 +1,4 @@
-import SupabaseUserUserInteractionEndpoint from '@/utils/supabase/UserUserInteractionEndpoint ';
+import SupabaseUserUserInteractionEndpoint from '@/lib/supabase/UserUserInteractionEndpoint';
 import { TProfile } from '@/utils/types';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
@@ -35,24 +35,28 @@ export default function Header({
   return (
     <View className='flex-row w-full items-center justify-between bg-white p-4'>
       <View className='w-10'>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity testID='back-button' onPress={() => router.back()}>
           <Ionicons name='chevron-back' size={22} />
         </TouchableOpacity>
       </View>
       <View>
         <TouchableOpacity>
-          <Text className='text-black font-bold text-2xl'>
+          <Text testID='username' className='text-black font-bold text-2xl'>
             {currentlyViewedUser.username}
           </Text>
         </TouchableOpacity>
       </View>
       <View className='w-10'>
-        <TouchableOpacity onPress={() => setModalVisible(true)}>
+        <TouchableOpacity
+          testID='options-button'
+          onPress={() => setModalVisible(true)}
+        >
           <Ionicons name='ellipsis-horizontal' size={22} />
         </TouchableOpacity>
       </View>
 
       <Modal
+        testID='options-modal'
         animationType='slide'
         transparent={true}
         visible={modalVisible}
@@ -64,6 +68,7 @@ export default function Header({
         >
           <View className='mt-auto bg-white rounded-t-3xl'>
             <TouchableOpacity
+              testID='block-button'
               className='flex-row items-center gap-2 p-2'
               onPress={handleBlock}
             >

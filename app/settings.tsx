@@ -1,7 +1,7 @@
 import Header from '@/components/TopLevelHeader';
 import { useAuth } from '@/providers/AuthProvider';
 import { showToast } from '@/utils/helpers';
-import SupabaseUserEndpoint from '@/utils/supabase/UserEndpoint';
+import SupabaseUserEndpoint from '@/lib/supabase/UserEndpoint';
 import { TProfile } from '@/utils/types';
 import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';

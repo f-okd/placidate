@@ -1,7 +1,7 @@
 import BookmarkedPostPreview from '@/components/BookmarkedPostPreview';
 import Header from '@/components/TopLevelHeader';
 import { useAuth } from '@/providers/AuthProvider';
-import SupabaseUserPostInteractionEndpoint from '@/utils/supabase/UserPostInteractionEndpoint';
+import SupabaseUserPostInteractionEndpoint from '@/lib/supabase/UserPostInteractionEndpoint';
 import { TPost, TProfile } from '@/utils/types';
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useState } from 'react';

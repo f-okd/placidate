@@ -1,7 +1,7 @@
 import Tag from '@/components/Tag';
 import { useAuth } from '@/providers/AuthProvider';
 import { showToast } from '@/utils/helpers';
-import SupabasePostEndpoint from '@/utils/supabase/PostEndpoint';
+import SupabasePostEndpoint from '@/lib/supabase/PostEndpoint';
 import { TProfile } from '@/utils/types';
 import { useMemo, useState } from 'react';
 import { Modal, Text, TextInput, TouchableOpacity, View } from 'react-native';

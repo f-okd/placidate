@@ -1,5 +1,5 @@
 import { useAuth } from '@/providers/AuthProvider';
-import SupabaseUserUserInteractionEndpoint from '@/utils/supabase/UserUserInteractionEndpoint ';
+import SupabaseUserUserInteractionEndpoint from '@/lib/supabase/UserUserInteractionEndpoint';
 import { TProfile } from '@/utils/types';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
@@ -47,18 +47,21 @@ export default function ActionBar({
   return (
     <View className='flex-row pr-3 gap-2'>
       <Ionicons
+        testID='like-button'
         name={liked ? 'heart' : 'heart-outline'}
         size={24}
         color='black'
         onPress={() => (liked ? onUnlike() : onLike())}
       />
       <Ionicons
+        testID='bookmark-button'
         name={bookmarked ? 'bookmark' : 'bookmark-outline'}
         size={24}
         color='black'
         onPress={() => (bookmarked ? onUnbookmark() : onBookmark())}
       />
       <Ionicons
+        testID='more-options-button'
         name='ellipsis-horizontal'
         size={24}
         color='black'

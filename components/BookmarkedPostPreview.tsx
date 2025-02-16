@@ -1,4 +1,4 @@
-import SupabaseUserPostInteractionEndpoint from '@/utils/supabase/UserPostInteractionEndpoint';
+import SupabaseUserPostInteractionEndpoint from '@/lib/supabase/UserPostInteractionEndpoint';
 import { TPost } from '@/utils/types';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import React from 'react';
@@ -28,11 +28,15 @@ export default function BookmarkedPostPreview({
   };
 
   return (
-    <View className='flex-row items-center justify-between px-2'>
-      <View className='flex-1'>
+    <View
+      className='flex-row items-center justify-between px-2'
+      testID='bookmarked-post-container'
+    >
+      <View className='flex-1' testID='post-preview-container'>
         <PostPreview post={post} />
       </View>
       <Ionicons
+        testID='unbookmark-button'
         name='trash-outline'
         size={36}
         color='black'

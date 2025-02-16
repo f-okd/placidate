@@ -1,8 +1,8 @@
 import PostPreview from '@/components/PostPreview';
 import UserSearchResult from '@/components/UserSearchResult';
 import { useAuth } from '@/providers/AuthProvider';
-import SupabasePostEndpoint from '@/utils/supabase/PostEndpoint';
-import SupabaseUserEndpoint from '@/utils/supabase/UserEndpoint';
+import SupabasePostEndpoint from '@/lib/supabase/PostEndpoint';
+import SupabaseUserEndpoint from '@/lib/supabase/UserEndpoint';
 import { TPost, TProfile } from '@/utils/types';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';

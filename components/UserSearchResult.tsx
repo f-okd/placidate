@@ -8,6 +8,8 @@ interface IUserSearchResult {
   username: string;
   avatarUrl: string | null;
   router: Router;
+  isOnFollowingList?: boolean;
+  isOnFollowerList?: boolean;
 }
 
 export default function UserSearchResult({
@@ -26,22 +28,24 @@ export default function UserSearchResult({
     }
   };
   return (
-    <View className='flex-row gap 2'>
-      <TouchableOpacity
-        className='flex-row items-center p-2'
-        onPress={() => navigateToProfile()}
-      >
-        <Image
-          source={
-            avatarUrl
-              ? { uri: avatarUrl }
-              : require('@/assets/images/default-avatar.jpg')
-          }
-          style={profilePictureImageStyle}
-        />
-        <Text className='p-2 font-bold'>{username}</Text>
-      </TouchableOpacity>
-    </View>
+    <TouchableOpacity
+      testID='search-result'
+      className='flex-row items-center p-2'
+      onPress={() => navigateToProfile()}
+    >
+      <Image
+        testID='avatar'
+        source={
+          avatarUrl
+            ? { uri: avatarUrl }
+            : require('@/assets/images/default-avatar.jpg')
+        }
+        style={profilePictureImageStyle}
+      />
+      <Text testID='username' className='p-2 font-bold'>
+        {username}
+      </Text>
+    </TouchableOpacity>
   );
 }
 

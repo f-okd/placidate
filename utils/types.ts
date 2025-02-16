@@ -1,4 +1,4 @@
-import { Tables } from './supabase/types';
+import { Tables } from '@/lib/supabase/types';
 
 export type TProfile = Tables<'profiles'>;
 

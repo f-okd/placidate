@@ -1,5 +1,5 @@
+import { TProfile } from '@/utils/types';
 import { supabase } from './client';
-import { TProfile } from '../types';
 
 class SupabaseUserUserInteractionEndpoint {
   async followUser(

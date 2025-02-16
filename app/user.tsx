@@ -3,9 +3,9 @@ import PostPreview from '@/components/PostPreview';
 import ProfileHeader from '@/components/ProfileHeader';
 import { Profile, useAuth } from '@/providers/AuthProvider';
 
-import SupabasePostEndpoint from '@/utils/supabase/PostEndpoint';
-import SupabaseUserEndpoint from '@/utils/supabase/UserEndpoint';
-import SupabaseUserUserInteractionEndpoint from '@/utils/supabase/UserUserInteractionEndpoint ';
+import SupabasePostEndpoint from '@/lib/supabase/PostEndpoint';
+import SupabaseUserEndpoint from '@/lib/supabase/UserEndpoint';
+import SupabaseUserUserInteractionEndpoint from '@/lib/supabase/UserUserInteractionEndpoint';
 import { TPost, TProfile } from '@/utils/types';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
@@ -29,6 +29,34 @@ export default function OtherUsersProfileScreen() {
   const userEndpoint = new SupabaseUserEndpoint();
   const postEndpoint = new SupabasePostEndpoint();
   const userUserEndpoint = new SupabaseUserUserInteractionEndpoint();
+
+  const handleFollow = async () => {
+    if (!profile) return;
+    try {
+      await userUserEndpoint.followUser(
+        currentlyLoggedInProfile.id,
+        profile.id
+      );
+      setFollowStatus(true);
+      setFollowerCount((prev) => prev + 1);
+    } catch (error) {
+      console.error(`Error following user ${profile.id}:`, error);
+    }
+  };
+
+  const handleUnfollow = async () => {
+    if (!profile) return;
+    try {
+      await userUserEndpoint.unfollowUser(
+        currentlyLoggedInProfile.id,
+        profile.id
+      );
+      setFollowStatus(false);
+      setFollowerCount((prev) => prev - 1);
+    } catch (error) {
+      console.error(`Error unfollowing user ${profile.id}:`, error);
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -106,13 +134,12 @@ export default function OtherUsersProfileScreen() {
       />
       <ProfileHeader
         profile={profile}
-        currentlyLoggedInUser={false}
         postCount={postCount}
         isFollowing={followStatus}
         followingCount={followingCount}
         followerCount={followerCount}
-        onFollow={setFollowStatus}
-        handleSetFollowerCount={setFollowerCount}
+        onFollow={handleFollow}
+        onUnfollow={handleUnfollow}
       />
       <FlatList
         data={posts}
