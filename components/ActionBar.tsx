@@ -69,6 +69,7 @@ export default function ActionBar({
       />
 
       <Modal
+        testID='modal'
         animationType='slide'
         transparent={true}
         visible={modalVisible}
@@ -82,6 +83,7 @@ export default function ActionBar({
             <View className='p-4 gap-4'>
               {authorId == profile?.id ? (
                 <TouchableOpacity
+                  testID='delete-button'
                   className='flex-row items-center gap-2 p-2'
                   onPress={onDelete}
                 >
@@ -91,6 +93,7 @@ export default function ActionBar({
               ) : (
                 <>
                   <TouchableOpacity
+                    testID='report-button'
                     className='flex-row items-center gap-2 p-2'
                     onPress={() => {
                       console.log('Report pressed');
@@ -101,6 +104,7 @@ export default function ActionBar({
                     <Text className='text-lg'>Report Post</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
+                    testID='block-button'
                     className='flex-row items-center gap-2 p-2'
                     onPress={handleBlock}
                   >
