@@ -1,8 +1,6 @@
-import { TProfile } from '@/utils/types';
-import { act, fireEvent, render, screen } from '../__utils__/customRenderer';
 import ProfileHeader from '@/components/ProfileHeader';
-import { getMockSupabaseUserUserInteractionEndpoint } from '../__mocks__/supabase/UserUserInteractionEndpoint';
-import { Dispatch, SetStateAction } from 'react';
+import { TProfile } from '@/utils/types';
+import { fireEvent, render, screen } from '../__utils__/customRenderer';
 
 const mockNavigate = jest.fn();
 jest.mock('expo-router', () => ({
