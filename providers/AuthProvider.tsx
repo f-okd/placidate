@@ -41,7 +41,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signIn = async (email: string, password: string) => {
     if (!email) return showToast('Missing email');
     if (!password) return showToast('Missing password');
-
     if (!EmailValidator.validate(email)) return showToast('Invalid email');
 
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -85,6 +84,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!email) return showToast('Missing email');
     if (!password) return showToast('Missing password');
     if (!username) return showToast('Missing password');
+    if (!EmailValidator.validate(email)) return showToast('Invalid email');
+    if (password.length < 16)
+      return showToast(
+        'Password too short: Must be 16 characters long. Try a memorable phrase'
+      );
+
+    const userEndpoint = new SupabaseUserEndpoint();
+    const usernameUnavailable = await userEndpoint.userExists(username);
+
+    if (usernameUnavailable) return showToast('Username is taken');
 
     const { data, error } = await supabase.auth.signUp({
       email,

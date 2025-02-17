@@ -326,6 +326,25 @@ class SupabaseUserEndpoint {
       return [];
     }
   }
+
+  async userExists(username: string): Promise<boolean> {
+    try {
+      const { count, error } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('username', username);
+
+      if (error) {
+        console.error('Error checking username existence:', error);
+        return false;
+      }
+
+      return count ? count > 0 : false;
+    } catch (error) {
+      console.error(`Error checking if ${username} is available:`, error);
+      return false;
+    }
+  }
 }
 
 export default SupabaseUserEndpoint;
