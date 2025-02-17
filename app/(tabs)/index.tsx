@@ -28,12 +28,15 @@ export default function HomeScreen() {
 
   const postEndpoint = new SupabasePostEndpoint();
 
-  const getPosts = async (showLoadingState = true): Promise<void> => {
+  const getPosts = async (
+    showLoadingState = true,
+    section: activeSectionType = activeSection
+  ): Promise<void> => {
     if (showLoadingState) setLoading(true);
 
     try {
       const posts =
-        activeSection == activeSectionType.RECOMMENDED
+        section === activeSectionType.RECOMMENDED
           ? await postEndpoint.getRecommendedPosts(activeProfile.id)
           : await postEndpoint.getFollowingPosts(activeProfile.id);
 
@@ -46,23 +49,29 @@ export default function HomeScreen() {
     }
   };
 
-  const handleRefresh = useCallback(() => {
+  const handleRefresh = useCallback((section: activeSectionType) => {
     setRefreshing(true);
-    getPosts(false);
+    getPosts(false, section);
   }, []);
 
   const switchSection = async (targetSection: activeSectionType) => {
     setLoading(true);
     setRefreshing(true);
-    setActiveSection(targetSection);
-    await getPosts();
+    setActiveSection(targetSection); // Move this first
+
+    const posts =
+      targetSection === activeSectionType.RECOMMENDED
+        ? await postEndpoint.getRecommendedPosts(activeProfile.id)
+        : await postEndpoint.getFollowingPosts(activeProfile.id);
+
+    setPosts(posts ?? []);
     setLoading(false);
     setRefreshing(false);
   };
 
   useFocusEffect(
     useCallback(() => {
-      getPosts();
+      getPosts(true, activeSection);
 
       // Setup real-time subscription for new posts -- do i really want this
       const subscription = supabase
@@ -97,42 +106,52 @@ export default function HomeScreen() {
         <TouchableOpacity
           onPress={() => switchSection(activeSectionType.FOLLOWING)}
         >
-          <Text>Following</Text>
+          <Text
+            className={`${
+              activeSection == activeSectionType.FOLLOWING
+                ? 'font-bold'
+                : 'font-normal'
+            }`}
+          >
+            Following
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => switchSection(activeSectionType.RECOMMENDED)}
         >
-          <Text>Recommended</Text>
+          <Text
+            className={`${
+              activeSection == activeSectionType.RECOMMENDED
+                ? 'font-bold'
+                : 'font-normal'
+            }`}
+          >
+            Recommended
+          </Text>
         </TouchableOpacity>
       </View>
-      {activeSection == activeSectionType.FOLLOWING ? (
-        <FlatList
-          data={posts}
-          snapToStart
-          renderItem={({ item }) => <Post post={item} />}
-          className='w-full px-4'
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-          }
-          keyExtractor={(item) => item.id}
-        />
-      ) : (
-        <FlatList
-          data={posts}
-          snapToStart
-          renderItem={({ item }) => <Post post={item} />}
-          className='w-full px-4'
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-          }
-          keyExtractor={(item) => item.id}
-        />
-      )}
+      <FlatList
+        data={posts}
+        snapToStart
+        renderItem={({ item }) => <Post post={item} />}
+        className='w-full px-4'
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={
+              activeSection == activeSectionType.FOLLOWING
+                ? () => handleRefresh(activeSectionType.FOLLOWING)
+                : () => handleRefresh(activeSectionType.RECOMMENDED)
+            }
+          />
+        }
+        keyExtractor={(item) => item.id}
+      />
     </View>
   );
 }
 
 enum activeSectionType {
   FOLLOWING = 'following',
-  RECOMMENDED = 'recmommended',
+  RECOMMENDED = 'recommended',
 }
