@@ -9,8 +9,8 @@ export default function RegistrationScreen() {
   const router = useRouter();
   const [email, setEmail] = useState('a@a.com');
   const [username, setUsername] = useState('testAccount');
-  const [password, setPassword] = useState('password123');
-  const [confirmPassword, setConfirmPassword] = useState('password123');
+  const [password, setPassword] = useState('password12345678');
+  const [confirmPassword, setConfirmPassword] = useState('password12345678');
   const [image, setImage] = useState<string | null>(null);
 
   const { signUp } = useAuth();
