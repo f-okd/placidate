@@ -39,7 +39,7 @@ describe('Post Component', () => {
     mockNavigate.mockClear();
   });
 
-  it('renders post content correctly', () => {
+  it('successfully renders component with correct information', () => {
     render(<Post post={mockPost} />);
 
     expect(screen.getByText('testauthor')).toBeTruthy();

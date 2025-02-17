@@ -25,6 +25,7 @@ export default function OtherUsersProfileScreen() {
   const [followingCount, setFollowingCount] = useState<number>(0);
   const [followerCount, setFollowerCount] = useState<number>(0);
   const [followStatus, setFollowStatus] = useState<boolean>(false);
+  const [followedByStatus, setFollowedByStatus] = useState<boolean>(false);
 
   const userEndpoint = new SupabaseUserEndpoint();
   const postEndpoint = new SupabasePostEndpoint();
@@ -78,17 +79,20 @@ export default function OtherUsersProfileScreen() {
           setProfile(profileData);
 
           // 2.) Fetch and set follow and post counts
-          const [{ followers, following }, posts, followStatus] =
-            await Promise.all([
-              userEndpoint.getUserFollowCounts(profileData.id),
-              postEndpoint.getPostsCreatedByUser(profileData.id),
-              userUserEndpoint.userIsFollowing(
-                activeProfile.id,
-                String(user_id)
-              ),
-            ]);
+          const [
+            { followers, following },
+            posts,
+            followStatus,
+            followedByStatus,
+          ] = await Promise.all([
+            userEndpoint.getUserFollowCounts(profileData.id),
+            postEndpoint.getPostsCreatedByUser(profileData.id),
+            userUserEndpoint.userIsFollowing(activeProfile.id, String(user_id)),
+            userUserEndpoint.userIsFollowing(String(user_id), activeProfile.id),
+          ]);
 
           setFollowStatus(followStatus);
+          setFollowedByStatus(followedByStatus);
           setFollowingCount(following);
           setFollowerCount(followers);
 
@@ -136,6 +140,7 @@ export default function OtherUsersProfileScreen() {
         profile={profile}
         postCount={postCount}
         isFollowing={followStatus}
+        isFollowedBy={followedByStatus}
         followingCount={followingCount}
         followerCount={followerCount}
         onFollow={handleFollow}

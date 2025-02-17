@@ -6,7 +6,7 @@ const mockProps = {
 };
 
 describe('Tag', () => {
-  it('renders correctly', () => {
+  it('successfully renders component with correct information', () => {
     render(<Tag {...mockProps} />);
 
     expect(screen.getByTestId('tag')).toHaveTextContent('test-tag');

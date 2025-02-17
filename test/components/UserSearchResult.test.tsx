@@ -24,7 +24,7 @@ describe('UserSearchResult component', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly', () => {
+  it('successfully renders component with correct information', () => {
     render(<UserSearchResult {...mockProps} />);
 
     expect(screen.getByTestId('username')).toHaveTextContent(

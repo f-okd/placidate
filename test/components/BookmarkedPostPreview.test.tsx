@@ -40,7 +40,7 @@ describe('BookmarkedPostPreview', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly', () => {
+  it('successfully renders component with correct information', () => {
     render(<BookmarkedPostPreview {...mockProps} />);
 
     expect(screen.getByTestId('bookmarked-post-container')).toBeTruthy();

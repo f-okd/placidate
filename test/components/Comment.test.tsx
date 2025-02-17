@@ -42,7 +42,7 @@ describe('comment', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly', () => {
+  it('successfully renders component with correct information', () => {
     render(<Comment {...mockProps} />);
 
     expect(screen.getByTestId('clickable-username')).toHaveTextContent(
