@@ -1,5 +1,3 @@
-import { useAuth } from '@/providers/AuthProvider';
-import SupabaseUserUserInteractionEndpoint from '@/lib/supabase/UserUserInteractionEndpoint';
 import { TProfile } from '@/utils/types';
 import { useRouter } from 'expo-router';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
@@ -8,6 +6,7 @@ interface IProfileHeader {
   profile: TProfile;
   postCount: number;
   isFollowing: boolean;
+  isFollowedBy: boolean;
   followerCount: number;
   followingCount: number;
   onFollow: () => void;
@@ -18,6 +17,7 @@ export default function ProfileHeader({
   profile,
   postCount,
   isFollowing,
+  isFollowedBy,
   followerCount,
   followingCount,
   onFollow,
@@ -78,7 +78,7 @@ export default function ProfileHeader({
               {isFollowing ? 'Unfollow' : 'Follow'}
             </Text>
           </TouchableOpacity>
-          {isFollowing && (
+          {isFollowing && isFollowedBy && (
             <TouchableOpacity
               testID='message-button'
               className='bg-gray-800 w-[22%] p-2 rounded-lg'

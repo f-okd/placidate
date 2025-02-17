@@ -25,6 +25,7 @@ const mockProps = {
   profile: mockOtherUser,
   postCount: 25,
   isFollowing: true,
+  isFollowedBy: true,
   followerCount: 50,
   followingCount: 45,
   onFollow: mockOnFollow,
@@ -55,6 +56,11 @@ describe('ProfileHeader', () => {
   });
   it('does not show the option to message user if not following user', () => {
     render(<ProfileHeader {...{ ...mockProps, isFollowing: false }} />);
+
+    expect(screen.queryByTestId('message-button')).toBeNull();
+  });
+  it('does not show the option to message user if following user but user does not follow you', () => {
+    render(<ProfileHeader {...{ ...mockProps, isFollowedBy: false }} />);
 
     expect(screen.queryByTestId('message-button')).toBeNull();
   });
