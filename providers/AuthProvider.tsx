@@ -82,6 +82,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     username: string,
     avatarUri: string | null
   ) => {
+    if (!email) return showToast('Missing email');
+    if (!password) return showToast('Missing password');
+    if (!username) return showToast('Missing password');
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
