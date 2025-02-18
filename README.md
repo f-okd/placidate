@@ -15,13 +15,13 @@ Follow **ALL** these instructions for the best results: [React Native | Setup En
 1. Clone the repository to your local machine:
 
    ```bash
-   git clone https://github.com/f-okd/react-native-demo
+   git clone https://github.com/f-okd/placidate
    ```
 
 2. Navigate to the project directory on your local machine:
 
    ```bash
-   cd C:\...\react-native-demo
+   cd C:\...\placidate
    ```
 
 3. Install dependencies
