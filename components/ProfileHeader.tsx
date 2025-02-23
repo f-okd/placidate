@@ -1,5 +1,6 @@
 import { TProfile } from '@/utils/types';
 import { useRouter } from 'expo-router';
+import React, { useState, useMemo } from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 
 interface IProfileHeader {
@@ -23,11 +24,26 @@ export default function ProfileHeader({
   onFollow,
   onUnfollow,
 }: IProfileHeader) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const router = useRouter();
 
   const imageToDisplay = profile.avatar_url
     ? { uri: profile.avatar_url }
     : require('@/assets/images/default-avatar.jpg');
+
+  // Calculate truncated and full text
+  const { shouldShowButton, displayText } = useMemo(() => {
+    const bio = profile.bio?.trim() || '';
+    const words = bio.split(/\s+/);
+    if (words.length <= 25) {
+      return { shouldShowButton: false, displayText: bio };
+    }
+    const truncatedText = words.slice(0, 25).join(' ') + '...';
+    return {
+      shouldShowButton: true,
+      displayText: isExpanded ? bio : truncatedText,
+    };
+  }, [profile.bio, isExpanded]);
 
   return (
     <View className='border-b pb-5 border-gray-200 px-10'>
@@ -66,27 +82,41 @@ export default function ProfileHeader({
           <Text testID='post-label'>Posts</Text>
         </View>
       </View>
-
       <View className='pt-2'>
-        <View className='flex-row gap-2'>
-          <TouchableOpacity
-            testID='follow-button'
-            className={'bg-gray-800 w-[22%] p-2 rounded-lg'}
-            onPress={isFollowing ? onUnfollow : onFollow}
-          >
-            <Text className='text-white text-center'>
-              {isFollowing ? 'Unfollow' : 'Follow'}
-            </Text>
-          </TouchableOpacity>
-          {isFollowing && isFollowedBy && (
+        <View className='flex-col'>
+          <View>
+            <Text>{displayText}</Text>
+            {shouldShowButton && (
+              <TouchableOpacity
+                onPress={() => setIsExpanded(!isExpanded)}
+                className='mt-1'
+              >
+                <Text className='text-gray-600'>
+                  {isExpanded ? 'Show less' : 'Read more'}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          <View className='flex-row gap-2 mt-2'>
             <TouchableOpacity
-              testID='message-button'
-              className='bg-gray-800 w-[22%] p-2 rounded-lg'
-              onPress={() => router.push('/inbox')}
+              testID='follow-button'
+              className={'bg-gray-800 w-[22%] p-2 rounded-lg'}
+              onPress={isFollowing ? onUnfollow : onFollow}
             >
-              <Text className='text-white text-center'>Message</Text>
+              <Text className='text-white text-center'>
+                {isFollowing ? 'Unfollow' : 'Follow'}
+              </Text>
             </TouchableOpacity>
-          )}
+            {isFollowing && isFollowedBy && (
+              <TouchableOpacity
+                testID='message-button'
+                className='bg-gray-800 w-[22%] p-2 rounded-lg'
+                onPress={() => router.push('/inbox')}
+              >
+                <Text className='text-white text-center'>Message</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
       </View>
     </View>
