@@ -84,10 +84,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!email) return showToast('Missing email');
     if (!password) return showToast('Missing password');
     if (!username) return showToast('Missing password');
+
     if (!EmailValidator.validate(email)) return showToast('Invalid email');
+
     if (password.length < 16)
       return showToast(
         'Password too short: Must be 16 characters long. Try a memorable phrase'
+      );
+    if (username.length < 3)
+      return showToast(
+        'Username too short: Must be at least 5 characters long.'
+      );
+    if (username.length > 12)
+      return showToast(
+        'Username too long: Must be less than 13 characters long.'
       );
 
     const userEndpoint = new SupabaseUserEndpoint();
