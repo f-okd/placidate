@@ -91,14 +91,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return showToast(
         'Password too short: Must be 16 characters long. Try a memorable phrase'
       );
-    if (username.length < 3)
+    if (username.length < 4)
       return showToast(
-        'Username too short: Must be at least 5 characters long.'
+        'Username too short: Must be at least 4 characters long.'
       );
-    if (username.length > 12)
+    if (username.length > 16)
       return showToast(
-        'Username too long: Must be less than 13 characters long.'
+        'Username too long: Can not be greater than 16 characters long.'
       );
+
+    if (username.indexOf(' ') >= 0)
+      return showToast('Username must not contain whitespace.');
+    const alphanumeric = /^[\p{sc=Latn}\p{Nd}]*$/u;
+    if (!alphanumeric.test(username)) {
+      return showToast('Username may only contain letters and numbers');
+    }
 
     const userEndpoint = new SupabaseUserEndpoint();
     const usernameUnavailable = await userEndpoint.userExists(username);
