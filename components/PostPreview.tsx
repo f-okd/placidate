@@ -13,10 +13,24 @@ export default function PostPreview({ post }: { post: TPost }) {
         onPress={() => router.push(`/post?post_id=${post.id}`)}
       >
         <View className='border-b h-[150px] p-3'>
-          <Text testID='post-title' className='font-bold text-2xl mb-2'>
+          <Text
+            testID='post-title'
+            className='font-bold text-xl mb-2 text-center'
+            numberOfLines={1}
+            ellipsizeMode='tail'
+          >
             {post?.title}
           </Text>
-          <Text testID='post-body'>{post.body}</Text>
+          <Text
+            testID='post-body'
+            numberOfLines={4}
+            ellipsizeMode='tail'
+            className={`text-base ${
+              post?.post_type === 'poem' ? 'text-center' : ''
+            }`}
+          >
+            {post.body}
+          </Text>
         </View>
       </TouchableOpacity>
     </View>
