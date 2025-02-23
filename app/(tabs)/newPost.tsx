@@ -3,7 +3,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { showToast } from '@/utils/helpers';
 import SupabasePostEndpoint from '@/lib/supabase/PostEndpoint';
 import { TProfile } from '@/utils/types';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Modal, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import RadioGroup, { RadioButtonProps } from 'react-native-radio-buttons-group';
 
@@ -17,7 +17,8 @@ export default function CreateNewPostScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [newTag, setNewTag] = useState('');
 
-  const wordLimit = selectedPostTypeId == '1' ? 175 : 1000;
+  const wordLimit = selectedPostTypeId == '1' ? 175 : 500;
+  const currentWordCount = body.trim() ? body.split(' ').length : 0;
 
   const { profile: uncastedProfile } = useAuth();
   const activeProfile = uncastedProfile as TProfile;
@@ -33,7 +34,7 @@ export default function CreateNewPostScreen() {
 
   const handleChangeText = (text: string) => {
     const words = text.split(' ');
-    if (words.length < wordLimit) {
+    if (words.length <= wordLimit) {
       setBody(text);
     }
   };
@@ -106,6 +107,17 @@ export default function CreateNewPostScreen() {
     []
   );
 
+  useEffect(() => {
+    if (selectedPostTypeId === '1') {
+      const words = body.split(' ');
+      if (words.length > 175) {
+        const truncatedContent = words.slice(0, 175).join(' ');
+        setBody(truncatedContent);
+        showToast('Content has been truncated to match poem length limit');
+      }
+    }
+  }, [selectedPostTypeId]);
+
   return (
     <View className='flex-1 items-center bg-white p-4'>
       {/*Title:*/}
@@ -149,8 +161,8 @@ export default function CreateNewPostScreen() {
       {/*Post Content:*/}
       <View className='flex-1 w-full m-3'>
         <Text className='mb-2 text-base'>
-          {selectedPostTypeId == '1' ? 'Poem' : 'Short Story'}: {wordLimit}{' '}
-          words
+          {selectedPostTypeId == '1' ? 'Poem' : 'Short Story'}:{' '}
+          {currentWordCount}/{wordLimit} words
         </Text>
         <TextInput
           value={body}
