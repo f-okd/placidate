@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 
 interface IProfileHeader {
@@ -8,6 +8,7 @@ interface IProfileHeader {
   followingCount: number;
   avatar: string | null;
   id: string;
+  bio: string;
 }
 
 export default function OwnProfileHeader({
@@ -16,12 +17,27 @@ export default function OwnProfileHeader({
   followingCount,
   avatar,
   id,
+  bio,
 }: IProfileHeader) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const router = useRouter();
 
   const imageToDisplay = avatar
     ? { uri: avatar }
     : require('@/assets/images/default-avatar.jpg');
+
+  // Calculate truncated and full text
+  const { shouldShowButton, displayText } = useMemo(() => {
+    const words = bio.trim().split(/\s+/);
+    if (words.length <= 25) {
+      return { shouldShowButton: false, displayText: bio };
+    }
+    const truncatedText = words.slice(0, 25).join(' ') + '...';
+    return {
+      shouldShowButton: true,
+      displayText: isExpanded ? bio : truncatedText,
+    };
+  }, [bio, isExpanded]);
 
   return (
     <View className='border-b pb-5 border-gray-200 px-10'>
@@ -52,8 +68,21 @@ export default function OwnProfileHeader({
         </View>
       </View>
 
-      {/*Section for follow/unfollow or edit profile button*/}
-      <View className='pt-2 gap-2 flex-row'>
+      {/*Section for bio and edit profile button*/}
+      <View className='pt-2 gap-2 flex-col'>
+        <View>
+          <Text>{displayText}</Text>
+          {shouldShowButton && (
+            <TouchableOpacity
+              onPress={() => setIsExpanded(!isExpanded)}
+              className='mt-1'
+            >
+              <Text className='text-gray-600'>
+                {isExpanded ? 'Show less' : 'Read more'}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
         <TouchableOpacity
           testID='edit-profile-button'
           className='bg-gray-800 w-[24%] p-2 rounded-lg'

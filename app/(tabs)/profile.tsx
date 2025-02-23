@@ -74,6 +74,7 @@ export default function ProfileScreen() {
         followerCount={followerCount}
         avatar={profile.avatar_url as string}
         id={profile.id}
+        bio={profile.bio ?? ''}
       />
       <FlatList
         data={posts}

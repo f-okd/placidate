@@ -25,6 +25,11 @@ export default function EditProfile() {
   const [newBio, setNewBio] = useState(activeProfile?.bio || '');
   const [loading, setLoading] = useState(false);
   const [image, setImage] = useState<string | null>(null);
+  const [wordCount, setWordCount] = useState(0);
+
+  const countWords = (text: string): number => {
+    return text.trim() ? text.trim().split(/\s+/).length : 0;
+  };
 
   const userEndpoint = new SupabaseUserEndpoint();
 
@@ -107,14 +112,29 @@ export default function EditProfile() {
     }
   };
 
-  const handleBioChange = async () => {
+  const handleBioTextChange = (text: string) => {
+    const words = text.split(/\s+/);
+    if (words.length <= 200) {
+      setNewBio(text);
+      setWordCount(countWords(text));
+    } else {
+      // Truncate to 200 words
+      const truncatedText = words.slice(0, 200).join(' ');
+      setNewBio(truncatedText);
+      setWordCount(200);
+      showToast('Bio cannot exceed 200 words');
+    }
+  };
+
+  // Separate submit handler for the button
+  const handleBioSubmit = async () => {
     setLoading(true);
     try {
       await userEndpoint.updateBio(activeProfile.id, newBio.trim());
       await refreshProfile();
       showToast('Bio updated successfully');
     } catch (error) {
-      showToast('Failed to update username');
+      showToast('Failed to update bio');
     } finally {
       setLoading(false);
     }
@@ -183,16 +203,15 @@ export default function EditProfile() {
           <TextInput
             className='border border-gray-300 rounded-lg p-3 mb-2 min-h-[200]'
             value={newBio}
-            onChangeText={setNewBio}
-            placeholder='Enter new profile bio'
+            onChangeText={handleBioTextChange}
+            placeholder='Enter new profile bio (200 words max)'
             textAlignVertical='top'
             multiline
-            numberOfLines={5}
-            maxLength={1000}
+            numberOfLines={15}
           />
           <TouchableOpacity
             className='bg-purple-200 rounded-lg p-3'
-            onPress={handleBioChange}
+            onPress={handleBioSubmit}
             disabled={loading}
           >
             <Text className='text-white text-center font-semibold'>
