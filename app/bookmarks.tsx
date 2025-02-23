@@ -61,6 +61,9 @@ export default function Bookmarks() {
             />
           )}
           className='w-full px-4'
+          ListEmptyComponent={() => (
+            <Text className='text-gray-500 p-4'>No bookmarks yet</Text>
+          )}
           keyExtractor={(item) => item.id}
         />
       ) : (
