@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 
 import { supabase } from './client';
 import { TProfile } from '@/utils/types';
+import { showToast } from '@/utils/helpers';
 
 const PLACIDATE_SERVER_BASE_URL = 'http://10.0.2.2:8000';
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
@@ -116,29 +117,28 @@ class SupabaseUserEndpoint {
       return false;
     }
   }
-  async changePassword(newPassword: string): Promise<boolean> {
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
+  async changePassword(newPassword: string): Promise<void> {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
 
-      if (error) {
-        console.error('Error changing password:', {
+    if (error) {
+      if (
+        error.message ==
+        'New password should be different from the old password.'
+      ) {
+        return showToast(
+          'New password should be different from the old password.'
+        );
+      } else {
+        return console.error('Error changing password:', {
           operation: 'change_password',
           error,
         });
-        return false;
       }
-
-      router.replace('/');
-      return true;
-    } catch (error) {
-      console.error('Unexpected error in changePassword:', {
-        operation: 'change_password',
-        error,
-      });
-      return false;
     }
+
+    router.replace('/');
   }
 
   async deleteAccount(userId: string): Promise<boolean> {
