@@ -19,7 +19,7 @@ export default function HomeScreen() {
   const [posts, setPosts] = useState<TGetHomePagePost[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [activeSection, setActiveSection] = useState<activeSectionType>(
-    activeSectionType.FOLLOWING
+    activeSectionType.RECOMMENDED
   );
   const [refreshing, setRefreshing] = useState<boolean>(false);
 
@@ -145,6 +145,13 @@ export default function HomeScreen() {
             }
           />
         }
+        ListEmptyComponent={() => (
+          <View className='flex-1 items-center justify-center'>
+            <Text className='mt-10 text-3xl'>
+              Start following some users 😁
+            </Text>
+          </View>
+        )}
         keyExtractor={(item) => item.id}
       />
     </View>

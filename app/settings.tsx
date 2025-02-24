@@ -29,14 +29,23 @@ export default function Settings() {
   const userEndpoint = new SupabaseUserEndpoint();
 
   const handlePasswordChange = async () => {
-    if (newPassword.length < 6) {
-      showToast('Password must be at least 6 characters long');
-      return;
+    if (newPassword.length == 0) {
+      return showToast('Please enter a password value');
     }
+    if (newPassword.indexOf(' ') >= 0)
+      return showToast('Username must not contain whitespace.');
+    if (newPassword.length < 16) {
+      return showToast(
+        'Password too short: Must be 16 characters long. Try a memorable phrase'
+      );
+    }
+    if (newPassword.length > 64)
+      return showToast(
+        'Password too long: Must be fewer than 64 characters long.'
+      );
 
     if (newPassword !== confirmPassword) {
-      showToast('Passwords do not match');
-      return;
+      return showToast('Passwords do not match');
     }
 
     setLoading(true);

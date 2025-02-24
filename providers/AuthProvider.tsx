@@ -91,6 +91,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return showToast(
         'Password too short: Must be 16 characters long. Try a memorable phrase'
       );
+    if (password.length > 64)
+      return showToast(
+        'Password too long: Must be fewer than 64 characters long.'
+      );
     if (username.length < 4)
       return showToast(
         'Username too short: Must be at least 4 characters long.'
@@ -100,8 +104,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         'Username too long: Can not be greater than 16 characters long.'
       );
 
+    if (password.indexOf(' ') >= 0)
+      return showToast('Password must not contain whitespace.');
     if (username.indexOf(' ') >= 0)
       return showToast('Username must not contain whitespace.');
+
     const alphanumeric = /^[\p{sc=Latn}\p{Nd}]*$/u;
     if (!alphanumeric.test(username)) {
       return showToast('Username may only contain letters and numbers');
