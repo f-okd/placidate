@@ -6,7 +6,7 @@ import SupabaseUserUserInteractionEndpoint from '@/lib/supabase/UserUserInteract
 import { TProfile } from '@/utils/types';
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, FlatList, View } from 'react-native';
+import { ActivityIndicator, FlatList, View, Text } from 'react-native';
 
 export default function blockedUsers() {
   const [blockedUsers, setBlockedUsers] = useState<TProfile[]>([]);
@@ -64,15 +64,21 @@ export default function blockedUsers() {
         showBackIcon
         showNotificationIcon={false}
       />
-      <View className='px-4 pb-6'>
-        <FlatList
-          data={blockedUsers}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <BlockedUser profile={item} onUnblock={handleUnblockUser} />
-          )}
-        />
-      </View>
+      {blockedUsers.length > 0 ? (
+        <View className='px-4 pb-6'>
+          <FlatList
+            data={blockedUsers}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <BlockedUser profile={item} onUnblock={handleUnblockUser} />
+            )}
+          />
+        </View>
+      ) : (
+        <View className='flex-1 items-center justify-center'>
+          <Text className='text-3xl'>No blocked users yet 😁</Text>
+        </View>
+      )}
     </View>
   );
 }

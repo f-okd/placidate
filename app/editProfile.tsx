@@ -25,6 +25,11 @@ export default function EditProfile() {
   const [newBio, setNewBio] = useState(activeProfile?.bio || '');
   const [loading, setLoading] = useState(false);
   const [image, setImage] = useState<string | null>(null);
+  const [wordCount, setWordCount] = useState(0);
+
+  const countWords = (text: string): number => {
+    return text.trim() ? text.trim().split(/\s+/).length : 0;
+  };
 
   const userEndpoint = new SupabaseUserEndpoint();
 
@@ -79,9 +84,20 @@ export default function EditProfile() {
       return;
     }
 
-    if (newUsername.length < 3) {
-      showToast('Username must be at least 3 characters long');
+    if (newUsername.length < 4) {
+      showToast('Username must be at least 4 characters long');
       return;
+    }
+    if (newUsername.length > 16) {
+      showToast('Username can not be greater than 16 characters long');
+      return;
+    }
+
+    if (newUsername.indexOf(' ') >= 0)
+      return showToast('Username must not contain whitespace.');
+    const alphanumeric = /^[\p{sc=Latn}\p{Nd}]*$/u;
+    if (!alphanumeric.test(newUsername)) {
+      return showToast('Username may only contain letters and numbers');
     }
 
     setLoading(true);
@@ -96,14 +112,29 @@ export default function EditProfile() {
     }
   };
 
-  const handleBioChange = async () => {
+  const handleBioTextChange = (text: string) => {
+    const words = text.split(/\s+/);
+    if (words.length <= 200) {
+      setNewBio(text);
+      setWordCount(countWords(text));
+    } else {
+      // Truncate to 200 words
+      const truncatedText = words.slice(0, 200).join(' ');
+      setNewBio(truncatedText);
+      setWordCount(200);
+      showToast('Bio cannot exceed 200 words');
+    }
+  };
+
+  // Separate submit handler for the button
+  const handleBioSubmit = async () => {
     setLoading(true);
     try {
       await userEndpoint.updateBio(activeProfile.id, newBio.trim());
       await refreshProfile();
-      showToast('Username updated successfully');
+      showToast('Bio updated successfully');
     } catch (error) {
-      showToast('Failed to update username');
+      showToast('Failed to update bio');
     } finally {
       setLoading(false);
     }
@@ -127,19 +158,14 @@ export default function EditProfile() {
         {/*Avatar section */}
         <View className='mb-6 items-center'>
           {image ? (
-            <Image
-              source={{ uri: image }}
-              className='w-[150] h-[150] rounded-full'
-            />
+            <Image source={{ uri: image }} className='w-40 h-40 rounded-full' />
           ) : (
-            <Image
-              source={imageToDisplay}
-              className='w-[150] h-[150] rounded-full'
-            />
+            <Image source={imageToDisplay} className='w-40 h-40 rounded-full' />
           )}
           <TouchableOpacity
             className='text-xl mt-1 text-gray-600 mb-2'
             onPress={pickImage}
+            disabled={loading}
           >
             <Text>Upload new avatar</Text>
           </TouchableOpacity>
@@ -177,16 +203,15 @@ export default function EditProfile() {
           <TextInput
             className='border border-gray-300 rounded-lg p-3 mb-2 min-h-[200]'
             value={newBio}
-            onChangeText={setNewBio}
-            placeholder='Enter new profile bio'
+            onChangeText={handleBioTextChange}
+            placeholder='Enter new profile bio (200 words max)'
             textAlignVertical='top'
             multiline
-            numberOfLines={5}
-            maxLength={200}
+            numberOfLines={15}
           />
           <TouchableOpacity
             className='bg-purple-200 rounded-lg p-3'
-            onPress={handleBioChange}
+            onPress={handleBioSubmit}
             disabled={loading}
           >
             <Text className='text-white text-center font-semibold'>
@@ -209,24 +234,3 @@ export default function EditProfile() {
     </View>
   );
 }
-
-const editProfilePictureImageStyle = {
-  width: 100,
-  height: 100,
-  borderRadius: 20,
-  borderWidth: 2,
-  borderColor: 'black',
-  margin: 4,
-};
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  image: {
-    width: 200,
-    height: 200,
-  },
-});

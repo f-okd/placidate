@@ -1,8 +1,10 @@
 import { supabase } from '@/lib/supabase/client';
 import { Database } from '@/lib/supabase/types';
 import SupabaseUserEndpoint from '@/lib/supabase/UserEndpoint';
+import { showToast } from '@/utils/helpers';
 import { useRouter } from 'expo-router';
 import { createContext, ReactNode, useContext, useState } from 'react';
+import * as EmailValidator from 'email-validator';
 
 export type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -37,11 +39,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const userEndpoint = new SupabaseUserEndpoint();
 
   const signIn = async (email: string, password: string) => {
+    if (!email) return showToast('Missing email');
+    if (!password) return showToast('Missing password');
+    if (!EmailValidator.validate(email)) return showToast('Invalid email');
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
+    if (error?.message == 'Invalid login credentials')
+      return showToast('Invalid login credentials');
     if (error) return console.error(error);
 
     const profile = await userEndpoint.getProfile(data.user.id);
@@ -73,6 +81,44 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     username: string,
     avatarUri: string | null
   ) => {
+    if (!email) return showToast('Missing email');
+    if (!password) return showToast('Missing password');
+    if (!username) return showToast('Missing password');
+
+    if (!EmailValidator.validate(email)) return showToast('Invalid email');
+
+    if (password.length < 16)
+      return showToast(
+        'Password too short: Must be 16 characters long. Try a memorable phrase'
+      );
+    if (password.length > 64)
+      return showToast(
+        'Password too long: Must be fewer than 64 characters long.'
+      );
+    if (username.length < 4)
+      return showToast(
+        'Username too short: Must be at least 4 characters long.'
+      );
+    if (username.length > 16)
+      return showToast(
+        'Username too long: Can not be greater than 16 characters long.'
+      );
+
+    if (password.indexOf(' ') >= 0)
+      return showToast('Password must not contain whitespace.');
+    if (username.indexOf(' ') >= 0)
+      return showToast('Username must not contain whitespace.');
+
+    const alphanumeric = /^[\p{sc=Latn}\p{Nd}]*$/u;
+    if (!alphanumeric.test(username)) {
+      return showToast('Username may only contain letters and numbers');
+    }
+
+    const userEndpoint = new SupabaseUserEndpoint();
+    const usernameUnavailable = await userEndpoint.userExists(username);
+
+    if (usernameUnavailable) return showToast('Username is taken');
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,

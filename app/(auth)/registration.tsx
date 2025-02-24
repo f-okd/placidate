@@ -9,8 +9,8 @@ export default function RegistrationScreen() {
   const router = useRouter();
   const [email, setEmail] = useState('a@a.com');
   const [username, setUsername] = useState('testAccount');
-  const [password, setPassword] = useState('password123');
-  const [confirmPassword, setConfirmPassword] = useState('password123');
+  const [password, setPassword] = useState('password12345678');
+  const [confirmPassword, setConfirmPassword] = useState('password12345678');
   const [image, setImage] = useState<string | null>(null);
 
   const { signUp } = useAuth();
@@ -93,8 +93,11 @@ export default function RegistrationScreen() {
           onChangeText={setConfirmPassword}
           secureTextEntry={true}
           placeholder='Confirm password'
-          className='bg-white px-4 py-2 rounded-lg border border-gray-400 w-full  mb-4'
+          className='bg-white px-4 py-2 rounded-lg border border-gray-400 w-full'
         />
+        <Text className=' text-sm italic text-center mb-6'>
+          * Password must be at least 16 characters long. Try a memorable phrase
+        </Text>
         <TouchableOpacity
           className='px-4 py-2 rounded-lg bg-black'
           onPress={handleSignUp}

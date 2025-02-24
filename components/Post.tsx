@@ -31,7 +31,24 @@ export default function Post({ post }: { post: TGetHomePagePost }) {
       </TouchableOpacity>
       <TouchableOpacity onPress={() => router.push(`/post?post_id=${post.id}`)}>
         <View className='border-b h-[150px] p-3'>
-          <Text>{post.body}</Text>
+          <Text
+            testID='post-title'
+            className='font-bold text-xl mb-2 text-center'
+            numberOfLines={1}
+            ellipsizeMode='tail'
+          >
+            {post?.title}
+          </Text>
+          <Text
+            testID='post-body'
+            numberOfLines={4}
+            ellipsizeMode='tail'
+            className={`text-base ${
+              post?.post_type === 'poem' ? 'text-center' : ''
+            }`}
+          >
+            {post.body}
+          </Text>
         </View>
         <View className='p-2 border-b h-[80px]'>
           <View className='flex-row flex-wrap gap-1'>

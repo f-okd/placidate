@@ -195,8 +195,16 @@ export default function ViewPostScreen() {
 
       {/* Post body section */}
       <View className='min-h-[20%] p-4 border-y border-gray-200'>
-        <Text className='font-bold text-2xl mb-2'>{post?.title}</Text>
-        <Text className='text-base'>{post?.body}</Text>
+        <Text className='font-bold text-2xl mb-2 text-center'>
+          {post?.title}
+        </Text>
+        <Text
+          className={`text-base ${
+            post?.post_type === 'poem' ? 'text-center' : ''
+          }`}
+        >
+          {post?.body}
+        </Text>
       </View>
 
       {/* Description */}
