@@ -4,7 +4,7 @@ import { supabase } from './client';
 import { TProfile } from '@/utils/types';
 import { showToast } from '@/utils/helpers';
 
-const PLACIDATE_SERVER_BASE_URL = 'http://10.0.2.2:8000';
+export const PLACIDATE_SERVER_BASE_URL = 'http://10.0.2.2:8000';
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
 
 class SupabaseUserEndpoint {
