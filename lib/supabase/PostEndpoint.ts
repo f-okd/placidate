@@ -1,5 +1,6 @@
+import { TCommentsAndAuthors, TGetHomePagePost, TPost } from '@/utils/types';
 import { supabase } from './client';
-import { TCommentsAndAuthors, TGetHomePagePost, TPost } from '../types';
+import { PLACIDATE_SERVER_BASE_URL } from './UserEndpoint';
 
 class SupabasePostEndpoint {
   async getCommentsAndAuthors(
@@ -69,7 +70,32 @@ class SupabasePostEndpoint {
     currentlyAuthenticatedUser: string
   ): Promise<TGetHomePagePost[] | null> {
     try {
-      // First, get the blocked relationships
+      // Get all users that the current user follows
+      const { data: followingRelationships, error: followingError } =
+        await supabase
+          .from('follows')
+          .select('following_id')
+          .eq('follower_id', currentlyAuthenticatedUser)
+          .eq('status', 'accepted');
+
+      if (followingError) {
+        console.error(
+          'Error fetching following relationships:',
+          followingError
+        );
+        return null;
+      }
+
+      // If the user doesn't follow anyone, return empty array
+      if (!followingRelationships || followingRelationships.length === 0) {
+        return [];
+      }
+
+      const followingIds = followingRelationships.map(
+        (rel) => rel.following_id
+      );
+
+      // Get the blocked relationships
       const { data: blocks, error: blocksError } = await supabase
         .from('blocks')
         .select('blocker_id, blocked_id');
@@ -91,7 +117,7 @@ class SupabasePostEndpoint {
           .map((block) => block.blocker_id)
       );
 
-      // Get posts
+      // Get posts only from users that the current user follows
       const { data: posts, error: postsError } = await supabase
         .from('posts')
         .select(
@@ -106,67 +132,7 @@ class SupabasePostEndpoint {
         )
       `
         )
-        .order('created_at', { ascending: false });
-
-      if (postsError) {
-        console.error('Error fetching posts:', postsError);
-        return null;
-      }
-
-      // Filter out posts from blocked users
-      return posts.filter(
-        (post) =>
-          !blockedUsers.has(post.author_id) &&
-          !blockedByUsers.has(post.author_id) &&
-          post.author_id != currentlyAuthenticatedUser
-      );
-    } catch (error) {
-      console.error('Error in getPosts:', error);
-      return null;
-    }
-  }
-
-  async getRecommendedPosts(
-    currentlyAuthenticatedUser: string
-  ): Promise<TGetHomePagePost[] | null> {
-    try {
-      // First, get the blocked relationships
-      const { data: blocks, error: blocksError } = await supabase
-        .from('blocks')
-        .select('blocker_id, blocked_id');
-
-      if (blocksError) {
-        console.error('Error fetching blocks:', blocksError);
-        return null;
-      }
-
-      // Get all blocked and blocker IDs related to the current user
-      const blockedUsers = new Set(
-        blocks
-          ?.filter((block) => block.blocker_id === currentlyAuthenticatedUser)
-          .map((block) => block.blocked_id)
-      );
-      const blockedByUsers = new Set(
-        blocks
-          ?.filter((block) => block.blocked_id === currentlyAuthenticatedUser)
-          .map((block) => block.blocker_id)
-      );
-
-      // Get posts
-      const { data: posts, error: postsError } = await supabase
-        .from('posts')
-        .select(
-          `
-        *,
-        profiles!posts_author_id_fkey(id, username, avatar_url),
-        post_tags(
-          tag_id,
-          tags(
-            name
-          )
-        )
-      `
-        )
+        .in('author_id', followingIds)
         .order('created_at', { ascending: false });
 
       if (postsError) {
@@ -181,7 +147,32 @@ class SupabasePostEndpoint {
           !blockedByUsers.has(post.author_id)
       );
     } catch (error) {
-      console.error('Error in getPosts:', error);
+      console.error('Error in getFollowingPosts:', error);
+      return null;
+    }
+  }
+  async getRecommendedPosts(
+    userId: string
+  ): Promise<TGetHomePagePost[] | null> {
+    try {
+      const response = await fetch(
+        `${PLACIDATE_SERVER_BASE_URL}/api/recommendations/${userId}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.recommendations;
+    } catch (error) {
+      console.error('Error fetching recommendations:', error);
       return null;
     }
   }
