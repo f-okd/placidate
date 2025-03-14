@@ -208,7 +208,9 @@ class SupabaseUserEndpoint {
     return true;
   }
 
-  async removeProfilePictureFromStorage(userId: string): Promise<boolean> {
+  private async removeProfilePictureFromStorage(
+    userId: string
+  ): Promise<boolean> {
     const { data: avatars, error: avatarListError } = await supabase.storage
       .from('avatars')
       .list('', {
@@ -233,7 +235,7 @@ class SupabaseUserEndpoint {
     return true;
   }
 
-  async updateAvatarProfileReference(
+  private async updateAvatarProfileReference(
     userId: string,
     fileNameToSaveAs: string | null
   ) {
