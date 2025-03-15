@@ -174,13 +174,14 @@ export default function ViewPostScreen() {
     profiles: { id, username },
   } = post;
   const { description } = post;
+  console.log(id, username);
 
   const renderHeader = () => (
     <>
       {/* Attribution section */}
       <TouchableOpacity
         className='flex-row items-center p-2'
-        onPress={() => router.push(`/profile?user_id=${id}`)}
+        onPress={() => router.push(`/user?user_id=${id}`)}
       >
         <Image
           source={
