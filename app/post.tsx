@@ -171,10 +171,9 @@ export default function ViewPostScreen() {
     );
   }
   const {
-    profiles: { id, username },
+    profiles: { id, username, avatar_url },
   } = post;
   const { description } = post;
-  console.log(id, username);
 
   const renderHeader = () => (
     <>
@@ -185,8 +184,8 @@ export default function ViewPostScreen() {
       >
         <Image
           source={
-            activeProfile.avatar_url
-              ? { uri: activeProfile.avatar_url }
+            avatar_url
+              ? { uri: avatar_url }
               : require('@/assets/images/default-avatar.jpg')
           }
           style={profilePictureImageStyle}
