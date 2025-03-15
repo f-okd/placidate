@@ -8,7 +8,21 @@ class SupabasePostEndpoint {
     post_id: string
   ): Promise<TCommentsAndAuthors[] | null> {
     try {
-      // First get blocks
+      // First get the post to determine the author
+      const { data: postData, error: postError } = await supabase
+        .from('posts')
+        .select('author_id')
+        .eq('id', post_id)
+        .single();
+
+      if (postError) {
+        console.error('Error fetching post author:', postError);
+        return null;
+      }
+
+      const postAuthorId = postData.author_id;
+
+      // Get blocks
       const { data: blocks, error: blocksError } = await supabase
         .from('blocks')
         .select('blocker_id, blocked_id');
@@ -58,7 +72,7 @@ class SupabasePostEndpoint {
           deletable:
             commentAndProfileObject.profiles?.id ===
               currentlyAuthenticatedUser ||
-            commentAndProfileObject.user_id === currentlyAuthenticatedUser,
+            currentlyAuthenticatedUser === postAuthorId,
         }));
     } catch (error) {
       console.error('Error in getCommentsAndAuthors:', error);
