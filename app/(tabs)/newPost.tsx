@@ -6,6 +6,7 @@ import { TProfile } from '@/utils/types';
 import { useEffect, useMemo, useState } from 'react';
 import { Modal, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import RadioGroup, { RadioButtonProps } from 'react-native-radio-buttons-group';
+import { useRouter } from 'expo-router';
 
 export default function CreateNewPostScreen() {
   const [title, setTitle] = useState<string>('');
@@ -13,6 +14,7 @@ export default function CreateNewPostScreen() {
   const [selectedPostTypeId, setSelectedPostTypeId] = useState<string>('1');
   const [body, setBody] = useState<string>('');
   const [tags, setTags] = useState<string[]>([]);
+  const router = useRouter();
 
   const [modalVisible, setModalVisible] = useState(false);
   const [newTag, setNewTag] = useState('');
@@ -64,7 +66,7 @@ export default function CreateNewPostScreen() {
     setTags((currTags) => currTags.filter((currTag) => currTag != tag));
   };
 
-  const handleCreatePost = () => {
+  const handleCreatePost = async () => {
     if (tags.length < 3) {
       showToast('Error: You need at least 3 tags to create a post');
       return;
@@ -78,7 +80,7 @@ export default function CreateNewPostScreen() {
       showToast('Error: You need to add content to the post');
       return;
     }
-    postEndpoint.createPost(
+    await postEndpoint.createPost(
       activeProfile.id,
       title,
       description,
@@ -87,6 +89,7 @@ export default function CreateNewPostScreen() {
       tags
     );
     resetAllFields();
+    router.replace('/(tabs)/profile');
   };
 
   const radioButtons: RadioButtonProps[] = useMemo(
