@@ -148,7 +148,9 @@ export default function HomeScreen() {
         ListEmptyComponent={() => (
           <View className='flex-1 items-center justify-center'>
             <Text className='mt-10 text-3xl'>
-              Start following some users 😁
+              {activeSection == activeSectionType.FOLLOWING
+                ? 'Follow some more users 😁'
+                : ''}
             </Text>
           </View>
         )}
