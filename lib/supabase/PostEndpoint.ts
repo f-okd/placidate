@@ -222,8 +222,7 @@ class SupabasePostEndpoint {
       const { data, error } = await supabase
         .from('posts')
         .select('*, profiles!posts_author_id_fkey(*)')
-        .ilike('title', `%${searchTerm}%`);
-
+        .or(`title.ilike.%${searchTerm}%, description.ilike.%${searchTerm}%`);
       if (error) {
         console.error('Error searching for posts:', error);
         return [];

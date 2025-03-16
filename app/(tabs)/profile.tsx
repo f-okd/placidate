@@ -77,7 +77,7 @@ export default function ProfileScreen() {
         bio={profile.bio ?? ''}
       />
       <FlatList
-        data={posts}
+        data={posts.reverse()}
         snapToStart
         renderItem={({ item }) => <PostPreview post={item}></PostPreview>}
         className='w-full px-4'

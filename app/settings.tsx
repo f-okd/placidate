@@ -155,13 +155,13 @@ export default function Settings() {
 
         {/*TODO: Implement post visibility functionality */}
         {/*Manage Post visibility */}
-        <Text className='text-lg mt-4'>Who can view your posts?</Text>
+        {/* <Text className='text-lg mt-4'>Who can view your posts?</Text>
         <RadioGroup
           radioButtons={radioButtons}
           onPress={setSelectedPrivacyOptionId}
           selectedId={selectedPrivacyOptionId}
           containerStyle={{ alignItems: 'flex-start', width: '100%' }}
-        />
+        /> */}
 
         <Text className='text-2xl font-bold mt-10 mb-6'>Account Settings</Text>
         {/* Password Section */}
