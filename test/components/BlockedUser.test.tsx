@@ -21,7 +21,23 @@ describe('BlockedUser', () => {
     jest.clearAllMocks();
   });
 
-  it('successfully renders component with correct information', () => {
+  it('successfully renders component with correct information (null avatar)', () => {
+    render(<BlockedUser {...mockProps} />);
+
+    expect(screen.getByTestId('blocked-user-avatar')).toBeTruthy();
+    expect(screen.getByTestId('blocked-user-username')).toHaveTextContent(
+      'test-user'
+    );
+    expect(screen.getByTestId('unblock-button')).toBeTruthy();
+  });
+  it('successfully renders component with correct information (set avatar)', () => {
+    const mockProps = {
+      profile: {
+        ...mockUser,
+        avatar_url: 'https://via.placeholder.com/150/92c952',
+      },
+      onUnblock: jest.fn(),
+    };
     render(<BlockedUser {...mockProps} />);
 
     expect(screen.getByTestId('blocked-user-avatar')).toBeTruthy();
