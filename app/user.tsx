@@ -147,7 +147,7 @@ export default function OtherUsersProfileScreen() {
         onUnfollow={handleUnfollow}
       />
       <FlatList
-        data={posts}
+        data={posts.reverse()}
         snapToStart
         renderItem={({ item }) => <PostPreview post={item}></PostPreview>}
         className='w-full px-4'
