@@ -88,6 +88,10 @@ class SupabaseUserEndpoint {
         .eq('id', userId);
 
       if (error) {
+        if ((error as any).code == 23505) {
+          showToast('That username is not available');
+          return false;
+        }
         console.error('Error changing username:', error);
         return false;
       }
