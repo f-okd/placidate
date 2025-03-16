@@ -86,7 +86,7 @@ export default function ActionBar({
               {authorId == profile?.id ? (
                 <>
                   <TouchableOpacity
-                    testID='delete-button'
+                    testID='edit-button'
                     className='flex-row items-center gap-2 p-2'
                     onPress={onEdit}
                   >
