@@ -3,7 +3,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { showToast } from '@/utils/helpers';
 import SupabasePostEndpoint from '@/lib/supabase/PostEndpoint';
 import { TProfile } from '@/utils/types';
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Modal,
@@ -61,7 +61,7 @@ export default function CreateNewPostScreen() {
       return false;
     }
     if (tags.length < 10) {
-      setTags((currTags) => [...currTags, tag]);
+      setTags((currTags) => [...currTags, tag.toLowerCase()]);
     }
     return true;
   };
@@ -217,12 +217,12 @@ export default function CreateNewPostScreen() {
           Tags:{' '}
           {tags.map((tag, index) => {
             return (
-              <>
-                <Tag key={index} tagName={tag} onRemoveTag={handleRemoveTag} />
+              <React.Fragment key={index}>
+                <Tag tagName={tag} onRemoveTag={handleRemoveTag} />
                 <View>
                   <Text> </Text>
                 </View>
-              </>
+              </React.Fragment>
             );
           })}
         </Text>
@@ -269,11 +269,11 @@ export default function CreateNewPostScreen() {
         {/*Add tags and create post buttons*/}
         <View className='flex-row gap-4 justify-center'>
           {/*Reset all fields button */}
-          <TouchableOpacity className='rounded-lg py-3 px-6 mt-4'>
+          <TouchableOpacity className='rounded-lg py-3 px-6 mt-4 w-[70px] h-[60px]'>
             <Ionicons
               testID='unbookmark-button'
               name='trash-outline'
-              size={36}
+              size={30}
               color='#3A3B3C'
               onPress={resetAllFields}
               className=''
@@ -282,7 +282,7 @@ export default function CreateNewPostScreen() {
 
           {/*Add tags button*/}
           <TouchableOpacity
-            className='bg-gray-500 rounded-lg py-3 px-6 mt-4 w-[108px]'
+            className='bg-gray-500 rounded-lg py-3 px-6 mt-4 w-[110px] h-[45px]'
             onPress={() => {
               if (tags.length >= 10) {
                 showToast('Maximum 10 tags allowed');
@@ -296,7 +296,7 @@ export default function CreateNewPostScreen() {
 
           {/*Create post button */}
           <TouchableOpacity
-            className='bg-purple-200 rounded-lg py-3 px-6 mt-4 w-[130px]'
+            className='bg-purple-200 rounded-lg py-3 px-6 mt-4 w-[150px] h-[45px]'
             onPress={() => handleCreatePost()}
           >
             <Text className='text-white text-lg font-semibold'>
