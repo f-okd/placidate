@@ -43,7 +43,11 @@ export default function OwnProfileHeader({
     <View className='border-b pb-5 border-gray-200 px-10'>
       {/*Section for profile picture and post, follower, following counts */}
       <View className='flex-row items-center justify-between  '>
-        <Image source={imageToDisplay} style={profilePictureImageStyle} />
+        <Image
+          testID='avatar'
+          source={imageToDisplay}
+          style={profilePictureImageStyle}
+        />
         <TouchableOpacity
           testID='followers-section'
           onPress={() => router.push(`/followers?user_id=${id}`)}

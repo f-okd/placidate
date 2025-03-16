@@ -38,4 +38,21 @@ describe('PostPreview', () => {
     expect(mockNavigate).toHaveBeenCalledWith(`/post?post_id=${mockPost.id}`);
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
+  it('should apply center text alignment for poem post types', () => {
+    const poemPost = {
+      ...mockPost,
+      post_type: 'poem',
+    };
+
+    render(<PostPreview post={poemPost} />);
+
+    const postBody = screen.getByTestId('post-body');
+    expect(postBody.props.className).toContain('text-center');
+  });
+  it('should not apply center text alignment for poem post types', () => {
+    render(<PostPreview post={mockPost} />);
+
+    const postBody = screen.getByTestId('post-body');
+    expect(postBody.props.className).not.toContain('text-center');
+  });
 });

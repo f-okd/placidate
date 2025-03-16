@@ -6,9 +6,17 @@ import Tag from './Tag';
 
 export default function Post({ post }: { post: TGetHomePagePost }) {
   if (!post) {
-    return <View>Error: Post is missing</View>;
+    return (
+      <View>
+        <Text>Error: Post is missing</Text>
+      </View>
+    );
   } else if (!post.profiles) {
-    return <View>Error: Profile is missing</View>;
+    return (
+      <View>
+        <Text>Error: Profile is missing</Text>
+      </View>
+    );
   }
 
   const router = useRouter();
@@ -27,7 +35,9 @@ export default function Post({ post }: { post: TGetHomePagePost }) {
         onPress={() => router.push(`/user?user_id=${id}`)}
       >
         <Image source={imageToDisplay} style={profilePictureImageStyle} />
-        <Text className='p-2 font-bold'>{username}</Text>
+        <Text testID='username' className='p-2 font-bold'>
+          {username}
+        </Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => router.push(`/post?post_id=${post.id}`)}>
         <View className='border-b h-[150px] p-3'>
@@ -37,14 +47,14 @@ export default function Post({ post }: { post: TGetHomePagePost }) {
             numberOfLines={1}
             ellipsizeMode='tail'
           >
-            {post?.title}
+            {post.title}
           </Text>
           <Text
             testID='post-body'
             numberOfLines={4}
             ellipsizeMode='tail'
             className={`text-base ${
-              post?.post_type === 'poem' ? 'text-center' : ''
+              post.post_type === 'poem' ? 'text-center' : ''
             }`}
           >
             {post.body}

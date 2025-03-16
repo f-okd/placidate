@@ -42,8 +42,13 @@ describe('Post Component', () => {
   it('successfully renders component with correct information', () => {
     render(<Post post={mockPost} />);
 
-    expect(screen.getByText('testauthor')).toBeTruthy();
-    expect(screen.getByText('Test post body content')).toBeTruthy();
+    expect(screen.getByTestId('username')).toHaveTextContent('testauthor');
+    expect(screen.getByTestId('post-title')).toHaveTextContent(
+      'Test Post Title'
+    );
+    expect(screen.getByTestId('post-body')).toHaveTextContent(
+      'Test post body content'
+    );
     expect(screen.getByText('test-tag')).toBeTruthy();
   });
 
@@ -63,5 +68,23 @@ describe('Post Component', () => {
     fireEvent.press(postContent);
 
     expect(mockNavigate).toHaveBeenCalledWith(`/post?post_id=${mockPost.id}`);
+  });
+  it('should display error message when post is null', () => {
+    // @ts-ignore - Intentionally passing null to test error handling
+    render(<Post post={null} />);
+
+    expect(screen.getByText('Error: Post is missing')).toBeTruthy();
+  });
+
+  it('should display error message when profile is missing', () => {
+    const postWithoutProfile: TGetHomePagePost = {
+      ...mockPost,
+      profiles: null,
+    };
+
+    // @ts-ignore - Intentionally passing invalid data to test error handling
+    render(<Post post={postWithoutProfile} />);
+
+    expect(screen.getByText('Error: Profile is missing')).toBeTruthy();
   });
 });
