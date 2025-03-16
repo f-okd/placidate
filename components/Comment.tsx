@@ -1,4 +1,4 @@
-import { TCommentsAndAuthors } from '@/utils/types';
+import { TCommentsAndAuthors, TProfile } from '@/utils/types';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import React from 'react';
@@ -10,11 +10,11 @@ interface IComment {
 }
 
 export default function Comment({ comment, onDelete }: IComment) {
-  const { profiles: profile } = comment;
+  const { profiles } = comment;
+  const profile = profiles as TProfile;
+
   const { user_id: author_id } = comment;
   const router = useRouter();
-
-  if (!profile) return <Text className='font-bold'>A user: </Text>;
 
   return (
     <View className='flex-row gap-2 items center w-full m-1'>
@@ -39,7 +39,7 @@ export default function Comment({ comment, onDelete }: IComment) {
             <></>
           )}
         </View>
-        <Text>{comment.body}</Text>
+        <Text testID='comment-body'>{comment.body}</Text>
       </View>
     </View>
   );
