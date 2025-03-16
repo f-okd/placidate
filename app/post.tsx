@@ -149,6 +149,10 @@ export default function ViewPostScreen() {
     }
   };
 
+  const handleEdit = async (): Promise<void> => {
+    router.push(`/editPost?post_id=${post_id}`);
+  };
+
   if (loading) {
     return (
       <View className='flex-1 bg-white items-center justify-center'>
@@ -235,6 +239,7 @@ export default function ViewPostScreen() {
           onBookmark={handleBookmark}
           onUnbookmark={handleUnbookmark}
           onDelete={handleDelete}
+          onEdit={handleEdit}
         />
       </View>
 

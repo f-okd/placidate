@@ -15,6 +15,7 @@ interface IActionBar {
   onBookmark: () => Promise<void>;
   onUnbookmark: () => Promise<void>;
   onDelete: () => Promise<void>;
+  onEdit: () => Promise<void>;
 }
 
 export default function ActionBar({
@@ -26,6 +27,7 @@ export default function ActionBar({
   onBookmark,
   onUnbookmark,
   onDelete,
+  onEdit,
 }: IActionBar) {
   const [modalVisible, setModalVisible] = useState(false);
   const { profile } = useAuth();
@@ -82,14 +84,24 @@ export default function ActionBar({
           <View className='mt-auto bg-white rounded-t-3xl'>
             <View className='p-4 gap-4'>
               {authorId == profile?.id ? (
-                <TouchableOpacity
-                  testID='delete-button'
-                  className='flex-row items-center gap-2 p-2'
-                  onPress={onDelete}
-                >
-                  <Ionicons name='trash-outline' size={24} color='black' />
-                  <Text className='text-lg'>Delete post</Text>
-                </TouchableOpacity>
+                <>
+                  <TouchableOpacity
+                    testID='delete-button'
+                    className='flex-row items-center gap-2 p-2'
+                    onPress={onEdit}
+                  >
+                    <Ionicons name='create' size={24} color='black' />
+                    <Text className='text-lg'>Edit post</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    testID='delete-button'
+                    className='flex-row items-center gap-2 p-2'
+                    onPress={onDelete}
+                  >
+                    <Ionicons name='trash-outline' size={24} color='black' />
+                    <Text className='text-lg'>Delete post</Text>
+                  </TouchableOpacity>
+                </>
               ) : (
                 <>
                   <TouchableOpacity
