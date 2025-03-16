@@ -13,6 +13,7 @@ const mockUserId = 'test-user-id';
 const mockProps = {
   id: mockUserId,
   avatar: null,
+  bio: 'test bio',
   postCount: 25,
   isFollowing: true,
   followerCount: 50,
@@ -38,7 +39,9 @@ describe('ProfileHeader', () => {
     expect(screen.getByTestId('edit-profile-button')).toHaveTextContent(
       'Edit profile'
     );
+    expect(screen.getByTestId('bio')).toHaveTextContent('test bio');
   });
+
   it('should navigate to own follower list if user presses followers ', () => {
     render(<OwnProfileHeader {...mockProps} />);
 
@@ -49,6 +52,7 @@ describe('ProfileHeader', () => {
     );
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
+
   it('should navigate to own following list if user presses following ', () => {
     render(<OwnProfileHeader {...mockProps} />);
 
@@ -59,6 +63,7 @@ describe('ProfileHeader', () => {
     );
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
+
   it('should navigate to edit profile page if user presses edit profile button ', () => {
     render(<OwnProfileHeader {...mockProps} />);
 

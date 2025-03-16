@@ -71,7 +71,7 @@ export default function OwnProfileHeader({
       {/*Section for bio and edit profile button*/}
       <View className='pt-2 gap-2 flex-col'>
         <View>
-          <Text>{displayText}</Text>
+          <Text testID='bio'>{displayText}</Text>
           {shouldShowButton && (
             <TouchableOpacity
               onPress={() => setIsExpanded(!isExpanded)}
