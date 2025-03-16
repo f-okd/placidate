@@ -37,6 +37,7 @@ describe('ActionBar', () => {
     onBookmark: jest.fn(),
     onUnbookmark: jest.fn(),
     onDelete: jest.fn(),
+    onEdit: jest.fn(),
   };
 
   beforeEach(() => {
@@ -140,6 +141,18 @@ describe('ActionBar', () => {
     });
 
     expect(mockProps.onDelete).toHaveBeenCalled();
+  });
+  it('calls onEdit when edit post option is pressed', async () => {
+    render(<ActionBar {...{ ...mockProps, authorId: 'current-user-id' }} />);
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('more-options-button'));
+    });
+    await act(async () => {
+      fireEvent.press(screen.getByText('Edit post'));
+    });
+
+    expect(mockProps.onEdit).toHaveBeenCalled();
   });
   it('calls endpoint to block user when block option is pressed', async () => {
     render(<ActionBar {...mockProps} />);

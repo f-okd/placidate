@@ -1,4 +1,9 @@
-import { TCommentsAndAuthors, TGetHomePagePost, TPost } from '@/utils/types';
+import {
+  IUpdatedPostDetails,
+  TCommentsAndAuthors,
+  TGetHomePagePost,
+  TPost,
+} from '@/utils/types';
 import { supabase } from './client';
 import { PLACIDATE_SERVER_BASE_URL } from './UserEndpoint';
 
@@ -483,6 +488,160 @@ class SupabasePostEndpoint {
     }
 
     return data;
+  }
+
+  async getPostDetails(post_id: string): Promise<TPost | null> {
+    const { data, error } = await supabase
+      .from('posts')
+      .select('*, profiles!posts_author_id_fkey(*)')
+      .eq('id', post_id)
+      .single();
+
+    if (error) {
+      console.error('Error fetching post details:', error);
+      return null;
+    }
+
+    if (!data) {
+      console.error(`Post with ID ${post_id} not found`);
+      return null;
+    }
+
+    return data;
+  }
+
+  async getTagsForPost(post_id: string): Promise<string[]> {
+    const { data, error } = await supabase
+      .from('post_tags')
+      .select('tags(name)')
+      .eq('post_id', post_id);
+
+    if (error) {
+      console.error('Error fetching tags for post:', error);
+      return [];
+    }
+
+    if (!data || data.length === 0) {
+      return [];
+    }
+
+    return data.map((item) => item.tags?.name).filter(Boolean) as string[];
+  }
+
+  async updatePost(
+    author_id: string,
+    post_id: string,
+    updatedPostDetails: IUpdatedPostDetails
+  ): Promise<boolean> {
+    try {
+      // First, update the post record
+      const { error: postUpdateError } = await supabase
+        .from('posts')
+        .update({
+          title: updatedPostDetails.title,
+          description: updatedPostDetails.description,
+          post_type: updatedPostDetails.post_type,
+          body: updatedPostDetails.body,
+        })
+        .eq('id', post_id)
+        .eq('author_id', author_id); // For security, verify the author is making the change
+
+      if (postUpdateError) {
+        console.error('Error updating post:', postUpdateError);
+        return false;
+      }
+
+      // Get existing tags for this post
+      const { data: existingTagMappings, error: existingTagsError } =
+        await supabase
+          .from('post_tags')
+          .select('tag_id, tags(name)')
+          .eq('post_id', post_id);
+
+      if (existingTagsError) {
+        console.error('Error fetching existing tags:', existingTagsError);
+        return false;
+      }
+
+      // Create a map of existing tag names to their IDs
+      const existingTagMap = new Map();
+      existingTagMappings.forEach((mapping) => {
+        if (mapping.tags && mapping.tags.name) {
+          existingTagMap.set(mapping.tags.name, mapping.tag_id);
+        }
+      });
+
+      // Determine which tags to keep, add, or remove
+      const existingTagNames = Array.from(existingTagMap.keys());
+      const tagsToAdd = updatedPostDetails.tags.filter(
+        (tag) => !existingTagNames.includes(tag)
+      );
+      const tagsToRemove = existingTagNames.filter(
+        (tag) => !updatedPostDetails.tags.includes(tag)
+      );
+
+      // Upsert any new tags that need to be added
+      if (tagsToAdd.length > 0) {
+        const { error: tagUpsertError } = await supabase.from('tags').upsert(
+          tagsToAdd.map((name) => ({ name })),
+          { onConflict: 'name' }
+        );
+
+        if (tagUpsertError) {
+          console.error('Error upserting new tags:', tagUpsertError);
+          return false;
+        }
+
+        // Get the IDs of the tags we just upserted
+        const { data: newTags, error: newTagsError } = await supabase
+          .from('tags')
+          .select('id, name')
+          .in('name', tagsToAdd);
+
+        if (newTagsError || !newTags) {
+          console.error('Error fetching new tag IDs:', newTagsError);
+          return false;
+        }
+
+        // Create new tag mappings
+        const newTagMappings = newTags.map((tag) => ({
+          post_id: post_id,
+          tag_id: tag.id,
+        }));
+
+        const { error: newMappingsError } = await supabase
+          .from('post_tags')
+          .insert(newTagMappings);
+
+        if (newMappingsError) {
+          console.error('Error inserting new tag mappings:', newMappingsError);
+          return false;
+        }
+      }
+
+      // Remove tags that are no longer needed
+      if (tagsToRemove.length > 0) {
+        const tagIdsToRemove = tagsToRemove.map((tagName) =>
+          existingTagMap.get(tagName)
+        );
+
+        const { error: removeMappingsError } = await supabase
+          .from('post_tags')
+          .delete()
+          .eq('post_id', post_id)
+          .in('tag_id', tagIdsToRemove);
+
+        if (removeMappingsError) {
+          console.error('Error removing tag mappings:', removeMappingsError);
+          return false;
+        }
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Unexpected error in updatePost:', error);
+      return false;
+    }
   }
 }
 

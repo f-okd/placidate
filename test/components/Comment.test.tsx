@@ -48,6 +48,9 @@ describe('comment', () => {
     expect(screen.getByTestId('clickable-username')).toHaveTextContent(
       mockComment.profiles?.username + ':'
     );
+    expect(screen.getByTestId('comment-body')).toHaveTextContent(
+      mockComment.body
+    );
     expect(screen.getByTestId('delete-button')).toBeTruthy();
   });
   it('does not show delete button if that comment should not be delatable current user', () => {

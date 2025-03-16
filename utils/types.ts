@@ -6,6 +6,8 @@ export type TComments = Tables<'comments'>;
 
 export type TPost = Tables<'posts'>;
 
+export type TTag = Tables<'tags'>;
+
 export type TCommentsAndAuthors = TComments & {
   profiles: TProfile | null;
   deletable: boolean;
@@ -32,3 +34,11 @@ export type TGetHomePagePost = {
   title: string;
   updated_at: string | null;
 };
+
+export interface IUpdatedPostDetails {
+  title: string;
+  post_type: string;
+  description: string;
+  body: string;
+  tags: string[];
+}

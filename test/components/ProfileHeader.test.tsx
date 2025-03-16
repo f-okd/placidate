@@ -37,7 +37,7 @@ describe('ProfileHeader', () => {
     jest.clearAllMocks();
   });
 
-  it('successfully renders component with correct information', () => {
+  it('successfully renders component with correct information (null avatar)', () => {
     render(<ProfileHeader {...mockProps} />);
 
     expect(screen.getByTestId('follower-count')).toHaveTextContent('50');
@@ -48,6 +48,33 @@ describe('ProfileHeader', () => {
     );
     expect(screen.getByTestId('follow-button')).toHaveTextContent('Unfollow');
     expect(screen.getByTestId('message-button')).toHaveTextContent('Message');
+    expect(screen.getByTestId('avatar')).toBeTruthy();
+  });
+  it('successfully renders component with correct information (set avatar)', () => {
+    const mockProps = {
+      profile: {
+        ...mockOtherUser,
+        avatar_url: 'https://via.placeholder.com/150/92c952',
+      },
+      postCount: 25,
+      isFollowing: true,
+      isFollowedBy: true,
+      followerCount: 50,
+      followingCount: 45,
+      onFollow: mockOnFollow,
+      onUnfollow: mockOnUnfollow,
+    };
+    render(<ProfileHeader {...mockProps} />);
+
+    expect(screen.getByTestId('follower-count')).toHaveTextContent('50');
+    expect(screen.getByTestId('follower-label')).toHaveTextContent('Followers');
+    expect(screen.getByTestId('following-count')).toHaveTextContent('45');
+    expect(screen.getByTestId('following-label')).toHaveTextContent(
+      'Following'
+    );
+    expect(screen.getByTestId('follow-button')).toHaveTextContent('Unfollow');
+    expect(screen.getByTestId('message-button')).toHaveTextContent('Message');
+    expect(screen.getByTestId('avatar')).toBeTruthy();
   });
   it('shows option to follow user if not already following user', () => {
     render(<ProfileHeader {...{ ...mockProps, isFollowing: false }} />);
@@ -91,5 +118,56 @@ describe('ProfileHeader', () => {
       `/following?user_id=${mockProps.profile.id}&username=${mockProps.profile.username}`
     );
     expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+  it('should show "Read more" button when bio exceeds 25 words', () => {
+    const longBioProps = {
+      ...mockProps,
+      profile: {
+        ...mockOtherUser,
+        bio: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi. Proin porttitor, orci nec.',
+      },
+    };
+
+    render(<ProfileHeader {...longBioProps} />);
+
+    expect(screen.getByText('Read more')).toBeTruthy();
+  });
+
+  it('should expand bio when "Read more" is clicked', () => {
+    const longBio =
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi. Proin porttitor, orci nec.';
+
+    const longBioProps = {
+      ...mockProps,
+      profile: {
+        ...mockOtherUser,
+        bio: longBio,
+      },
+    };
+
+    render(<ProfileHeader {...longBioProps} />);
+
+    const readMoreButton = screen.getByText('Read more');
+    fireEvent.press(readMoreButton);
+
+    expect(screen.getByText('Show less')).toBeTruthy();
+  });
+
+  it('should handle follow action when follow button is pressed', () => {
+    render(<ProfileHeader {...{ ...mockProps, isFollowing: false }} />);
+
+    const followButton = screen.getByTestId('follow-button');
+    fireEvent.press(followButton);
+
+    expect(mockOnFollow).toHaveBeenCalledTimes(1);
+  });
+
+  it('should handle unfollow action when unfollow button is pressed', () => {
+    render(<ProfileHeader {...mockProps} />);
+
+    const unfollowButton = screen.getByTestId('follow-button');
+    fireEvent.press(unfollowButton);
+
+    expect(mockOnUnfollow).toHaveBeenCalledTimes(1);
   });
 });

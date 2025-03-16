@@ -1,10 +1,14 @@
 import Tag from '@/components/Tag';
+import SupabasePostEndpoint from '@/lib/supabase/PostEndpoint';
 import { useAuth } from '@/providers/AuthProvider';
 import { showToast } from '@/utils/helpers';
-import SupabasePostEndpoint from '@/lib/supabase/PostEndpoint';
 import { TProfile } from '@/utils/types';
-import React, { useEffect, useMemo, useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import React from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Modal,
   Text,
@@ -13,17 +17,19 @@ import {
   View,
 } from 'react-native';
 import RadioGroup, { RadioButtonProps } from 'react-native-radio-buttons-group';
-import { useRouter } from 'expo-router';
-import { T } from '@faker-js/faker/dist/airline-D6ksJFwG';
-import { Ionicons } from '@expo/vector-icons';
 
-export default function CreateNewPostScreen() {
+export default function EditPostScreen() {
   const [title, setTitle] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [selectedPostTypeId, setSelectedPostTypeId] = useState<string>('1');
   const [body, setBody] = useState<string>('');
   const [tags, setTags] = useState<string[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+
   const router = useRouter();
+
+  const params = useLocalSearchParams();
+  const post_id = params.post_id as string;
 
   const [modalVisible, setModalVisible] = useState(false);
   const [newTag, setNewTag] = useState('');
@@ -43,6 +49,29 @@ export default function CreateNewPostScreen() {
     setTags([]);
   };
 
+  const cancelEdit = (): void => {
+    Alert.alert(
+      'Cancel edit',
+      'Are you sure you want to canel editing this post? Your changes will not be saved!.',
+      [
+        {
+          text: 'Yes, cancel edit',
+          style: 'destructive',
+          onPress: async () => {
+            setLoading(true);
+            resetAllFields();
+            setLoading(false);
+            router.back();
+          },
+        },
+        {
+          text: 'No, stay here',
+          style: 'default',
+        },
+      ]
+    );
+  };
+
   const handleChangeText = (text: string) => {
     const words = text.split(' ');
     if (words.length <= wordLimit) {
@@ -56,12 +85,11 @@ export default function CreateNewPostScreen() {
       return false;
     }
     if (tag.length < 3) {
-      console.log('too short');
       showToast('Tag too short');
       return false;
     }
     if (tags.length < 10) {
-      setTags((currTags) => [...currTags, tag.toLowerCase()]);
+      setTags((currTags) => [...currTags, tag.toLocaleLowerCase()]);
     }
     return true;
   };
@@ -80,7 +108,7 @@ export default function CreateNewPostScreen() {
     setTags((currTags) => currTags.filter((currTag) => currTag != tag));
   };
 
-  const handleCreatePost = async () => {
+  const handleUpdatePost = async () => {
     if (tags.length < 3) {
       showToast('Error: You need at least 3 tags to create a post');
       return;
@@ -97,12 +125,12 @@ export default function CreateNewPostScreen() {
       showToast('Error: You need to add content to the post');
       return;
     }
-    await createPost();
+    await updatePost();
   };
 
-  const createPost = async () => {
+  const updatePost = async () => {
     Alert.alert(
-      'Create Post',
+      'Edit Post',
       'By submitting this post, you confirm that this content is either your original work or is shared with permission from the original creator.',
       [
         {
@@ -113,20 +141,46 @@ export default function CreateNewPostScreen() {
           text: 'Post',
           style: 'default',
           onPress: async () => {
-            await postEndpoint.createPost(
+            setLoading(true);
+            const success = await postEndpoint.updatePost(
               activeProfile.id,
-              title,
-              description,
-              String(postIdTypeMap.get(selectedPostTypeId)),
-              body,
-              tags
+              post_id,
+              {
+                title,
+                description,
+                post_type: selectedPostTypeId == '1' ? 'poem' : 'story',
+                body,
+                tags,
+              }
             );
-            resetAllFields();
-            router.replace('/(tabs)/profile');
+            setLoading(false);
+            if (success) {
+              showToast('Post successfully updated');
+              resetAllFields();
+              router.replace('/(tabs)/profile');
+            } else {
+              showToast('Unexpected error');
+            }
           },
         },
       ]
     );
+  };
+
+  const fetchAndSetPostDetails = async () => {
+    const post = await postEndpoint.getPostDetails(post_id);
+    const fetchedTags = await postEndpoint.getTagsForPost(post_id);
+
+    if (!post?.title || !post.body) {
+      showToast('Error finding post');
+      return router.back();
+    }
+
+    setTitle(post.title);
+    setBody(post.body);
+    setDescription(post.description ?? '');
+    setSelectedPostTypeId(post.post_type == 'poem' ? '1' : '2');
+    setTags(fetchedTags);
   };
 
   const radioButtons: RadioButtonProps[] = useMemo(
@@ -147,6 +201,14 @@ export default function CreateNewPostScreen() {
     []
   );
 
+  useFocusEffect(
+    useCallback(() => {
+      setLoading(true);
+      fetchAndSetPostDetails();
+      setLoading(false);
+    }, [])
+  );
+
   useEffect(() => {
     if (selectedPostTypeId === '1') {
       const words = body.split(' ');
@@ -158,6 +220,13 @@ export default function CreateNewPostScreen() {
     }
   }, [selectedPostTypeId]);
 
+  if (loading) {
+    return (
+      <View className='flex-1 bg-white items-center justify-center'>
+        <ActivityIndicator size={'large'} />
+      </View>
+    );
+  }
   return (
     <View className='flex-1 items-center bg-white p-4'>
       {/*Title:*/}
@@ -215,16 +284,14 @@ export default function CreateNewPostScreen() {
         />
         <Text className='mt-4 mb-2 text-base'>
           Tags:{' '}
-          {tags.map((tag, index) => {
-            return (
-              <React.Fragment key={index}>
-                <Tag tagName={tag} onRemoveTag={handleRemoveTag} />
-                <View>
-                  <Text> </Text>
-                </View>
-              </React.Fragment>
-            );
-          })}
+          {tags.map((tag, index) => (
+            <React.Fragment key={index}>
+              <Tag tagName={tag} onRemoveTag={handleRemoveTag} />
+              <View>
+                <Text> </Text>
+              </View>
+            </React.Fragment>
+          ))}
         </Text>
 
         {/* Tag Modal */}
@@ -275,7 +342,7 @@ export default function CreateNewPostScreen() {
               name='trash-outline'
               size={30}
               color='#3A3B3C'
-              onPress={resetAllFields}
+              onPress={cancelEdit}
               className=''
             />
           </TouchableOpacity>
@@ -291,16 +358,16 @@ export default function CreateNewPostScreen() {
               }
             }}
           >
-            <Text className='text-white text-lg font-semibold'>Add tags</Text>
+            <Text className='text-white text-lg font-semibold '>Add tags</Text>
           </TouchableOpacity>
 
           {/*Create post button */}
           <TouchableOpacity
             className='bg-purple-200 rounded-lg py-3 px-6 mt-4 w-[150px] h-[45px]'
-            onPress={() => handleCreatePost()}
+            onPress={() => handleUpdatePost()}
           >
             <Text className='text-white text-lg font-semibold'>
-              Create Post
+              Update Post
             </Text>
           </TouchableOpacity>
         </View>
