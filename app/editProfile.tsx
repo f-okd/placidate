@@ -102,8 +102,11 @@ export default function EditProfile() {
 
     setLoading(true);
     try {
-      await userEndpoint.changeUsername(activeProfile.id, newUsername.trim());
-      await refreshProfile();
+      const success = await userEndpoint.changeUsername(
+        activeProfile.id,
+        newUsername.trim()
+      );
+      if (success) await refreshProfile();
       showToast('Username updated successfully');
     } catch (error) {
       showToast('Failed to update username');
@@ -185,6 +188,7 @@ export default function EditProfile() {
             value={newUsername}
             onChangeText={setNewUsername}
             placeholder='Enter new username'
+            maxLength={16}
           />
           <TouchableOpacity
             className='bg-purple-200 rounded-lg p-3'
