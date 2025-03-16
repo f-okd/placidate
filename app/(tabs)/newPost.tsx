@@ -4,9 +4,18 @@ import { showToast } from '@/utils/helpers';
 import SupabasePostEndpoint from '@/lib/supabase/PostEndpoint';
 import { TProfile } from '@/utils/types';
 import { useEffect, useMemo, useState } from 'react';
-import { Modal, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Modal,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import RadioGroup, { RadioButtonProps } from 'react-native-radio-buttons-group';
 import { useRouter } from 'expo-router';
+import { T } from '@faker-js/faker/dist/airline-D6ksJFwG';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function CreateNewPostScreen() {
   const [title, setTitle] = useState<string>('');
@@ -46,6 +55,11 @@ export default function CreateNewPostScreen() {
       showToast('Tag already added');
       return false;
     }
+    if (tag.length < 3) {
+      console.log('too short');
+      showToast('Tag too short');
+      return false;
+    }
     if (tags.length < 10) {
       setTags((currTags) => [...currTags, tag]);
     }
@@ -76,20 +90,43 @@ export default function CreateNewPostScreen() {
     } else if (!title) {
       showToast('Error: You need to add a title to create a post');
       return;
+    } else if (title.length < 3) {
+      showToast('Error: The title must be at least 3 characters long');
+      return;
     } else if (!body) {
       showToast('Error: You need to add content to the post');
       return;
     }
-    await postEndpoint.createPost(
-      activeProfile.id,
-      title,
-      description,
-      String(postIdTypeMap.get(selectedPostTypeId)),
-      body,
-      tags
+    await createPost();
+  };
+
+  const createPost = async () => {
+    Alert.alert(
+      'Create Post',
+      'By submitting this post, you confirm that this content is either your original work or is shared with permission from the original creator.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Post',
+          style: 'default',
+          onPress: async () => {
+            await postEndpoint.createPost(
+              activeProfile.id,
+              title,
+              description,
+              String(postIdTypeMap.get(selectedPostTypeId)),
+              body,
+              tags
+            );
+            resetAllFields();
+            router.replace('/(tabs)/profile');
+          },
+        },
+      ]
     );
-    resetAllFields();
-    router.replace('/(tabs)/profile');
   };
 
   const radioButtons: RadioButtonProps[] = useMemo(
@@ -131,7 +168,7 @@ export default function CreateNewPostScreen() {
           className='text-black text-lg border-b border-gray-300 flex-1 p-2'
           aria-label='Title'
           onChangeText={(text: string) => setTitle(text)}
-          maxLength={20}
+          maxLength={30}
         />
       </View>
 
@@ -178,9 +215,16 @@ export default function CreateNewPostScreen() {
         />
         <Text className='mt-4 mb-2 text-base'>
           Tags:{' '}
-          {tags.map((tag, index) => (
-            <Tag key={index} tagName={tag} onRemoveTag={handleRemoveTag} />
-          ))}
+          {tags.map((tag, index) => {
+            return (
+              <>
+                <Tag key={index} tagName={tag} onRemoveTag={handleRemoveTag} />
+                <View>
+                  <Text> </Text>
+                </View>
+              </>
+            );
+          })}
         </Text>
 
         {/* Tag Modal */}
@@ -224,6 +268,18 @@ export default function CreateNewPostScreen() {
 
         {/*Add tags and create post buttons*/}
         <View className='flex-row gap-4 justify-center'>
+          {/*Reset all fields button */}
+          <TouchableOpacity className='rounded-lg py-3 px-6 mt-4'>
+            <Ionicons
+              testID='unbookmark-button'
+              name='trash-outline'
+              size={36}
+              color='#3A3B3C'
+              onPress={resetAllFields}
+              className=''
+            />
+          </TouchableOpacity>
+
           {/*Add tags button*/}
           <TouchableOpacity
             className='bg-gray-500 rounded-lg py-3 px-6 mt-4 w-[108px]'
