@@ -351,6 +351,106 @@ class SupabaseUserEndpoint {
       return false;
     }
   }
+
+  async canViewUserContent(
+    viewerId: string,
+    targetUserId: string
+  ): Promise<boolean> {
+    // Self can always view own content
+    if (viewerId === targetUserId) return true;
+
+    try {
+      // Get target user's privacy setting
+      const { data: targetProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('is_private')
+        .eq('id', targetUserId)
+        .single();
+
+      if (profileError || !targetProfile) {
+        console.error('Error checking user privacy:', profileError);
+        return false;
+      }
+
+      // If profile is public, anyone can view
+      if (!targetProfile.is_private) return true;
+
+      // If profile is private, check if they mutually follow each other
+      // First check if viewer follows target
+      const { data: viewerFollowsTarget, error: followError1 } = await supabase
+        .from('follows')
+        .select('*')
+        .eq('follower_id', viewerId)
+        .eq('following_id', targetUserId)
+        .single();
+
+      if (followError1) {
+        if ((followError1 as any).code === 'PGRST116') {
+          // No relationship found
+          return false;
+        }
+        console.error('Error checking if viewer follows target:', followError1);
+        return false;
+      }
+
+      // Then check if target follows viewer (mutual follow)
+      const { data: targetFollowsViewer, error: followError2 } = await supabase
+        .from('follows')
+        .select('*')
+        .eq('follower_id', targetUserId)
+        .eq('following_id', viewerId)
+        .single();
+
+      if (followError2) {
+        if ((followError2 as any).code === 'PGRST116') {
+          // No relationship found
+          return false;
+        }
+        console.error('Error checking if target follows viewer:', followError2);
+        return false;
+      }
+
+      // Return true only if they mutually follow each other
+      return !!viewerFollowsTarget && !!targetFollowsViewer;
+    } catch (error) {
+      console.error('Unexpected error in canViewUserContent:', error);
+      return false;
+    }
+  }
+
+  // Method to get whether a user has a private profile
+  async isProfilePrivate(userId: string): Promise<boolean> {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('is_private')
+      .eq('id', userId)
+      .single();
+
+    if (error) {
+      console.error('Error checking if profile is private:', error);
+      return false;
+    }
+
+    return !!data?.is_private;
+  }
+
+  async toggleAccountPrivacy(
+    userId: string,
+    selectedId: string
+  ): Promise<boolean> {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ is_private: selectedId == '1' ? false : true })
+      .eq('id', userId);
+
+    if (error) {
+      console.error('Error updating privacy settings:', error);
+      showToast('Failed to update privacy settings');
+      return false;
+    }
+
+    return true;
+  }
 }
 
 export default SupabaseUserEndpoint;
