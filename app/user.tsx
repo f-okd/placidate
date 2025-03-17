@@ -26,6 +26,7 @@ export default function OtherUsersProfileScreen() {
   const [followerCount, setFollowerCount] = useState<number>(0);
   const [followStatus, setFollowStatus] = useState<boolean>(false);
   const [followedByStatus, setFollowedByStatus] = useState<boolean>(false);
+  const [canViewContent, setCanViewContent] = useState<boolean>(true);
 
   const userEndpoint = new SupabaseUserEndpoint();
   const postEndpoint = new SupabasePostEndpoint();
@@ -78,29 +79,46 @@ export default function OtherUsersProfileScreen() {
           }
           setProfile(profileData);
 
-          // 2.) Fetch and set follow and post counts
-          const [
-            { followers, following },
-            posts,
-            followStatus,
-            followedByStatus,
-          ] = await Promise.all([
-            userEndpoint.getUserFollowCounts(profileData.id),
-            postEndpoint.getPostsCreatedByUser(profileData.id),
-            userUserEndpoint.userIsFollowing(activeProfile.id, String(user_id)),
-            userUserEndpoint.userIsFollowing(String(user_id), activeProfile.id),
-          ]);
+          // 2.) Check if the current user can view the target user's content
+          const canView = await userEndpoint.canViewUserContent(
+            activeProfile.id,
+            String(user_id)
+          );
+          setCanViewContent(canView);
+
+          // 3.) Fetch and set follow and post counts
+          const [{ followers, following }, followStatus, followedByStatus] =
+            await Promise.all([
+              userEndpoint.getUserFollowCounts(profileData.id),
+              userUserEndpoint.userIsFollowing(
+                activeProfile.id,
+                String(user_id)
+              ),
+              userUserEndpoint.userIsFollowing(
+                String(user_id),
+                activeProfile.id
+              ),
+            ]);
 
           setFollowStatus(followStatus);
           setFollowedByStatus(followedByStatus);
           setFollowingCount(following);
           setFollowerCount(followers);
 
-          if (posts) {
-            setPosts(posts);
-            setPostCount(posts.length);
+          // 4.) Fetch posts only if the user can view the content
+          if (canView) {
+            const posts = await postEndpoint.getPostsCreatedByUser(
+              profileData.id
+            );
+            if (posts) {
+              setPosts(posts);
+              setPostCount(posts.length);
+            } else {
+              console.error('Error setting posts for profile:', profileData.id);
+              setPosts([]);
+              setPostCount(0);
+            }
           } else {
-            console.error('Error setting posts for profile:', profileData.id);
             setPosts([]);
             setPostCount(0);
           }
@@ -114,7 +132,7 @@ export default function OtherUsersProfileScreen() {
       };
 
       loadAllProfileData();
-    }, [user_id])
+    }, [user_id, followStatus])
   );
 
   if (loading) {
@@ -147,7 +165,7 @@ export default function OtherUsersProfileScreen() {
         onUnfollow={handleUnfollow}
       />
       <FlatList
-        data={posts.reverse()}
+        data={posts}
         snapToStart
         renderItem={({ item }) => <PostPreview post={item}></PostPreview>}
         className='w-full px-4'

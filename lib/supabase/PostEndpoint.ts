@@ -94,8 +94,7 @@ class SupabasePostEndpoint {
         await supabase
           .from('follows')
           .select('following_id')
-          .eq('follower_id', currentlyAuthenticatedUser)
-          .eq('status', 'accepted');
+          .eq('follower_id', currentlyAuthenticatedUser);
 
       if (followingError) {
         console.error(
@@ -112,6 +111,25 @@ class SupabasePostEndpoint {
 
       const followingIds = followingRelationships.map(
         (rel) => rel.following_id
+      );
+
+      // Get all users who follow the current user
+      const { data: followers, error: followersError } = await supabase
+        .from('follows')
+        .select('follower_id')
+        .eq('following_id', currentlyAuthenticatedUser);
+
+      if (followersError) {
+        console.error('Error fetching followers:', followersError);
+        return null;
+      }
+
+      // Create set of follower IDs
+      const followerIds = new Set(followers?.map((f) => f.follower_id) || []);
+
+      // Create set of mutual followers (users who the current user follows and who follow the current user)
+      const mutualFollowerIds = followingIds.filter((id) =>
+        followerIds.has(id)
       );
 
       // Get the blocked relationships
@@ -142,7 +160,7 @@ class SupabasePostEndpoint {
         .select(
           `
         *,
-        profiles!posts_author_id_fkey(id, username, avatar_url),
+        profiles!posts_author_id_fkey(id, username, avatar_url, is_private),
         post_tags(
           tag_id,
           tags(
@@ -159,17 +177,30 @@ class SupabasePostEndpoint {
         return null;
       }
 
-      // Filter out posts from blocked users
-      return posts.filter(
-        (post) =>
-          !blockedUsers.has(post.author_id) &&
-          !blockedByUsers.has(post.author_id)
-      );
+      // Filter out posts from blocked users and respect privacy settings
+      return posts.filter((post) => {
+        // Filter out posts from blocked users
+        if (
+          blockedUsers.has(post.author_id) ||
+          blockedByUsers.has(post.author_id)
+        ) {
+          return false;
+        }
+
+        // If the author has a private profile, ensure they are mutual followers
+        if (post.profiles?.is_private) {
+          return mutualFollowerIds.includes(post.author_id);
+        }
+
+        // Posts from public profiles that the user follows are visible
+        return true;
+      });
     } catch (error) {
       console.error('Error in getFollowingPosts:', error);
       return null;
     }
   }
+
   async getRecommendedPosts(
     userId: string
   ): Promise<TGetHomePagePost[] | null> {
@@ -196,6 +227,7 @@ class SupabasePostEndpoint {
     }
   }
 
+  // Update searchForPosts method to respect privacy settings
   async searchForPosts(
     currentlyAuthenticatedUser: string,
     searchTerm: string
@@ -211,7 +243,7 @@ class SupabasePostEndpoint {
         return [];
       }
 
-      // Create Sets
+      // Create Sets for blocked users
       const blockedUsers = new Set(
         blocks
           ?.filter((block) => block.blocker_id === currentlyAuthenticatedUser)
@@ -223,22 +255,72 @@ class SupabasePostEndpoint {
           .map((block) => block.blocker_id)
       );
 
+      // Get all users that the current user follows
+      const { data: following, error: followingError } = await supabase
+        .from('follows')
+        .select('following_id')
+        .eq('follower_id', currentlyAuthenticatedUser);
+
+      if (followingError) {
+        console.error('Error fetching following:', followingError);
+        return [];
+      }
+
+      // Get all users that follow the current user
+      const { data: followers, error: followersError } = await supabase
+        .from('follows')
+        .select('follower_id')
+        .eq('following_id', currentlyAuthenticatedUser);
+
+      if (followersError) {
+        console.error('Error fetching followers:', followersError);
+        return [];
+      }
+
+      // Create sets for following and followers
+      const followingIds = new Set(following?.map((f) => f.following_id) || []);
+      const followerIds = new Set(followers?.map((f) => f.follower_id) || []);
+
+      // Find mutual followers (users who the current user follows and who follow the current user)
+      const mutualFollowers = new Set(
+        [...followingIds].filter((id) => followerIds.has(id))
+      );
+
       // Get posts with specific profile relationship
       const { data, error } = await supabase
         .from('posts')
         .select('*, profiles!posts_author_id_fkey(*)')
         .or(`title.ilike.%${searchTerm}%, description.ilike.%${searchTerm}%`);
+
       if (error) {
         console.error('Error searching for posts:', error);
         return [];
       }
 
+      // Filter posts based on privacy settings and blocks
       return (
-        data.filter(
-          (post) =>
-            !blockedUsers.has(post.author_id) &&
-            !blockedByUsers.has(post.author_id)
-        ) || []
+        data.filter((post) => {
+          // Skip posts from blocked/blocking users
+          if (
+            blockedUsers.has(post.author_id) ||
+            blockedByUsers.has(post.author_id)
+          ) {
+            return false;
+          }
+
+          // Current user can always see their own posts
+          if (post.author_id === currentlyAuthenticatedUser) {
+            return true;
+          }
+
+          // If the author has a private profile, check if they're mutual followers
+          if (post.profiles?.is_private) {
+            return mutualFollowers.has(post.author_id);
+          }
+
+          // Public profiles' posts are visible to all
+          return true;
+        }) || []
       );
     } catch (error) {
       console.error('Error in searchForPosts:', error);
@@ -261,7 +343,7 @@ class SupabasePostEndpoint {
         return [];
       }
 
-      // Create Sets
+      // Create Sets for blocked users
       const blockedUsers = new Set(
         blocks
           ?.filter((block) => block.blocker_id === currentlyAuthenticatedUser)
@@ -271,6 +353,37 @@ class SupabasePostEndpoint {
         blocks
           ?.filter((block) => block.blocked_id === currentlyAuthenticatedUser)
           .map((block) => block.blocker_id)
+      );
+
+      // Get all users that the current user follows
+      const { data: following, error: followingError } = await supabase
+        .from('follows')
+        .select('following_id')
+        .eq('follower_id', currentlyAuthenticatedUser);
+
+      if (followingError) {
+        console.error('Error fetching following:', followingError);
+        return [];
+      }
+
+      // Get all users that follow the current user
+      const { data: followers, error: followersError } = await supabase
+        .from('follows')
+        .select('follower_id')
+        .eq('following_id', currentlyAuthenticatedUser);
+
+      if (followersError) {
+        console.error('Error fetching followers:', followersError);
+        return [];
+      }
+
+      // Create sets for following and followers
+      const followingIds = new Set(following?.map((f) => f.following_id) || []);
+      const followerIds = new Set(followers?.map((f) => f.follower_id) || []);
+
+      // Find mutual followers (users who the current user follows and who follow the current user)
+      const mutualFollowers = new Set(
+        [...followingIds].filter((id) => followerIds.has(id))
       );
 
       // Get posts by tag with specific profile relationship
@@ -293,12 +406,30 @@ class SupabasePostEndpoint {
         throw error;
       }
 
+      // Filter posts based on privacy settings and blocks
       return (
-        posts.filter(
-          (post) =>
-            !blockedUsers.has(post.author_id) &&
-            !blockedByUsers.has(post.author_id)
-        ) || []
+        posts.filter((post) => {
+          // Skip posts from blocked/blocking users
+          if (
+            blockedUsers.has(post.author_id) ||
+            blockedByUsers.has(post.author_id)
+          ) {
+            return false;
+          }
+
+          // Current user can always see their own posts
+          if (post.author_id === currentlyAuthenticatedUser) {
+            return true;
+          }
+
+          // If the author has a private profile, check if they're mutual followers
+          if (post.profiles?.is_private) {
+            return mutualFollowers.has(post.author_id);
+          }
+
+          // Public profiles' posts are visible to all
+          return true;
+        }) || []
       );
     } catch (error) {
       console.error('Error searching for posts by tag:', error);
@@ -487,7 +618,7 @@ class SupabasePostEndpoint {
       return null;
     }
 
-    return data;
+    return data.reverse();
   }
 
   async getPostDetails(post_id: string): Promise<TPost | null> {

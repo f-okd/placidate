@@ -18,7 +18,7 @@ interface AuthContextType {
     avatarUri: string | null
   ) => Promise<void>;
   signOut: () => Promise<void>;
-  refreshProfile: () => Promise<void>;
+  refreshProfile: (stayOnCurrentPage?: boolean) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType>({
@@ -26,7 +26,7 @@ export const AuthContext = createContext<AuthContextType>({
   signIn: async () => {},
   signUp: async () => {},
   signOut: async () => {},
-  refreshProfile: async () => {},
+  refreshProfile: async (stayOnCurrentPage?: boolean) => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     router.push('/(tabs)');
   };
 
-  const refreshProfile = async (): Promise<void> => {
+  const refreshProfile = async (stayOnCurrentPage?: boolean): Promise<void> => {
     const prof = await userEndpoint.getProfile(String(profile?.id));
 
     if (!prof)
@@ -72,7 +72,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       );
 
     setProfile(prof);
-    router.push('/(tabs)/profile');
+    if (!stayOnCurrentPage) router.push('/(tabs)/profile');
   };
 
   const signUp = async (

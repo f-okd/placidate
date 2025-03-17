@@ -23,8 +23,9 @@ export default function Settings() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [selectedPrivacyOptionId, setSelectedPrivacyOptionId] =
-    useState<string>('1');
+    useState<string>(activeProfile.is_private ? '2' : '1');
   const [loading, setLoading] = useState(false);
+  const { refreshProfile } = useAuth();
 
   const userEndpoint = new SupabaseUserEndpoint();
 
@@ -95,6 +96,19 @@ export default function Settings() {
     );
   };
 
+  const handleTogglePrivacy = async (selectedId: string) => {
+    setSelectedPrivacyOptionId(selectedId);
+    const success = await userEndpoint.toggleAccountPrivacy(
+      activeProfile.id,
+      selectedId
+    );
+    if (!success) {
+      return;
+    }
+    refreshProfile(true);
+    showToast(`Profile is now ${selectedId == '1' ? 'public' : 'private'}`);
+  };
+
   const radioButtons: RadioButtonProps[] = useMemo(
     () => [
       {
@@ -105,7 +119,7 @@ export default function Settings() {
       },
       {
         id: '2',
-        label: 'People that follow me',
+        label: 'My mutual followers',
         value: 'private',
         containerStyle: { alignItems: 'flex-start', alignSelf: 'flex-start' },
       },
@@ -153,15 +167,14 @@ export default function Settings() {
           </Text>
         </TouchableOpacity>
 
-        {/*TODO: Implement post visibility functionality */}
         {/*Manage Post visibility */}
-        {/* <Text className='text-lg mt-4'>Who can view your posts?</Text>
+        <Text className='text-lg mt-4'>Who can view your posts?</Text>
         <RadioGroup
           radioButtons={radioButtons}
-          onPress={setSelectedPrivacyOptionId}
+          onPress={handleTogglePrivacy}
           selectedId={selectedPrivacyOptionId}
           containerStyle={{ alignItems: 'flex-start', width: '100%' }}
-        /> */}
+        />
 
         <Text className='text-2xl font-bold mt-10 mb-6'>Account Settings</Text>
         {/* Password Section */}
