@@ -4,7 +4,7 @@ import { TProfile } from '@/utils/types';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Modal, Text, TouchableOpacity, View } from 'react-native';
+import { Modal, Share, Text, TouchableOpacity, View } from 'react-native';
 
 interface IActionBar {
   authorId: string;
@@ -16,6 +16,7 @@ interface IActionBar {
   onUnbookmark: () => Promise<void>;
   onDelete: () => Promise<void>;
   onEdit: () => Promise<void>;
+  onShare: () => Promise<void>;
 }
 
 export default function ActionBar({
@@ -28,6 +29,7 @@ export default function ActionBar({
   onUnbookmark,
   onDelete,
   onEdit,
+  onShare,
 }: IActionBar) {
   const [modalVisible, setModalVisible] = useState(false);
   const { profile } = useAuth();
@@ -122,6 +124,18 @@ export default function ActionBar({
                   >
                     <Ionicons name='ban-outline' size={24} color='black' />
                     <Text className='text-lg'>Block User</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    testID='block-button'
+                    className='flex-row items-center gap-2 p-2'
+                    onPress={onShare}
+                  >
+                    <Ionicons
+                      name='share-social-outline'
+                      size={24}
+                      color='black'
+                    />
+                    <Text className='text-lg'>Share Post</Text>
                   </TouchableOpacity>
                 </>
               )}
