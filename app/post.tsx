@@ -17,6 +17,7 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  Share,
   Text,
   TextInput,
   TouchableOpacity,
@@ -174,6 +175,16 @@ export default function ViewPostScreen() {
       </View>
     );
   }
+  const handleShare = async (): Promise<void> => {
+    try {
+      await Share.share({
+        message: formatPostForSharing(post.post_type, post.title, post.body),
+      });
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
+  };
+
   const {
     profiles: { id, username, avatar_url },
   } = post;
@@ -240,6 +251,7 @@ export default function ViewPostScreen() {
           onUnbookmark={handleUnbookmark}
           onDelete={handleDelete}
           onEdit={handleEdit}
+          onShare={handleShare}
         />
       </View>
 
@@ -300,4 +312,12 @@ const profilePictureImageStyle = {
   borderWidth: 2,
   borderColor: 'black',
   margin: 4,
+};
+
+const formatPostForSharing = (
+  postType: string,
+  postTitle: string,
+  postText: string
+): string => {
+  return `Hey, check out this ${postType} called ${postTitle}:\n\n${postText}`;
 };
