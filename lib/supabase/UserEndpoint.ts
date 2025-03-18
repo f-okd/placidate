@@ -440,8 +440,7 @@ class SupabaseUserEndpoint {
         )
         .eq('following_id', userId)
         .eq('status', 'accepted')
-        .order('created_at', { ascending: false })
-        .limit(limit);
+        .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching recent followers:', error);
@@ -463,7 +462,7 @@ class SupabaseUserEndpoint {
     }
   }
 
-  async getFriends(userId: string, limit: number = 100): Promise<TProfile[]> {
+  async getFriends(userId: string): Promise<TProfile[]> {
     try {
       // First, get users who the current user follows
       const { data: following, error: followingError } = await supabase
@@ -502,8 +501,7 @@ class SupabaseUserEndpoint {
         )
         .eq('following_id', userId) // They follow the current user
         .in('follower_id', followingIds) // The current user follows them back
-        .eq('status', 'accepted')
-        .limit(limit);
+        .eq('status', 'accepted');
 
       if (error) {
         console.error('Error fetching mutual followers:', error);
@@ -517,22 +515,6 @@ class SupabaseUserEndpoint {
       console.error('Error in getFriends:', error);
       return [];
     }
-  }
-
-  // Method to get whether a user has a private profile
-  async isProfilePrivate(userId: string): Promise<boolean> {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('is_private')
-      .eq('id', userId)
-      .single();
-
-    if (error) {
-      console.error('Error checking if profile is private:', error);
-      return false;
-    }
-
-    return !!data?.is_private;
   }
 
   async toggleAccountPrivacy(
