@@ -36,7 +36,7 @@ export default function Header({
         {showNotificationIcon && (
           <TouchableOpacity
             testID='notifications-button'
-            onPress={() => console.log('Navigate to notification screen')}
+            onPress={() => router.push('/activity')}
           >
             <Ionicons name='notifications' size={22} />
           </TouchableOpacity>
