@@ -109,10 +109,7 @@ export default function ActionBar({
                   <TouchableOpacity
                     testID='report-button'
                     className='flex-row items-center gap-2 p-2'
-                    onPress={() => {
-                      console.log('Report pressed');
-                      setModalVisible(false);
-                    }}
+                    onPress={() => handleBlock}
                   >
                     <Ionicons name='flag-outline' size={24} color='black' />
                     <Text className='text-lg'>Report Post</Text>
