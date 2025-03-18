@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       );
 
     setProfile(profile);
-    router.push('/(tabs)');
+    router.replace('/(tabs)');
   };
 
   const refreshProfile = async (stayOnCurrentPage?: boolean): Promise<void> => {
@@ -154,7 +154,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     setProfile(profile);
-    router.push('/(tabs)');
+    router.replace('/(tabs)');
   };
 
   const signOut = async () => {

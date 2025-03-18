@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 
 import { supabase } from './client';
-import { TProfile } from '@/utils/types';
+import { RecentFollowerRecord, TProfile } from '@/utils/types';
 import { showToast } from '@/utils/helpers';
 
 export const PLACIDATE_SERVER_BASE_URL = 'http://10.0.2.2:8000';
@@ -415,6 +415,107 @@ class SupabaseUserEndpoint {
     } catch (error) {
       console.error('Unexpected error in canViewUserContent:', error);
       return false;
+    }
+  }
+
+  async getRecentFollowers(
+    userId: string,
+    limit: number = 20
+  ): Promise<RecentFollowerRecord[]> {
+    try {
+      // Get all users who follow the specified user with the timestamp of when they followed
+      const { data, error } = await supabase
+        .from('follows')
+        .select(
+          `
+        created_at, 
+        follower:profiles!follows_follower_id_fkey (
+          id, 
+          username, 
+          avatar_url, 
+          bio, 
+          is_private
+        )
+      `
+        )
+        .eq('following_id', userId)
+        .eq('status', 'accepted')
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (error) {
+        console.error('Error fetching recent followers:', error);
+        return [];
+      }
+
+      // Format and filter followers
+      const formattedFollowers = data
+        .filter((item) => item.follower)
+        .map((item) => ({
+          ...item.follower,
+          created_at: item.created_at, // Add the created_at from the follows table
+        }));
+
+      return formattedFollowers;
+    } catch (error) {
+      console.error('Error in getRecentFollowers:', error);
+      return [];
+    }
+  }
+
+  async getFriends(userId: string, limit: number = 100): Promise<TProfile[]> {
+    try {
+      // First, get users who the current user follows
+      const { data: following, error: followingError } = await supabase
+        .from('follows')
+        .select('following_id')
+        .eq('follower_id', userId)
+        .eq('status', 'accepted');
+
+      if (followingError) {
+        console.error('Error fetching following list:', followingError);
+        return [];
+      }
+
+      if (!following || following.length === 0) {
+        // If the user doesn't follow anyone, they can't have mutual followers
+        return [];
+      }
+
+      // Get the IDs of users the current user follows
+      const followingIds = following.map((f) => f.following_id);
+
+      // Now find users who follow the current user AND are followed by the current user
+      const { data, error } = await supabase
+        .from('follows')
+        .select(
+          `
+        follower:profiles!follows_follower_id_fkey (
+          id,
+          username,
+          avatar_url,
+          bio,
+          is_private,
+          updated_at
+        )
+      `
+        )
+        .eq('following_id', userId) // They follow the current user
+        .in('follower_id', followingIds) // The current user follows them back
+        .eq('status', 'accepted')
+        .limit(limit);
+
+      if (error) {
+        console.error('Error fetching mutual followers:', error);
+        return [];
+      }
+
+      const friends = (data?.map((item) => item.follower) as TProfile[]) || [];
+
+      return friends;
+    } catch (error) {
+      console.error('Error in getFriends:', error);
+      return [];
     }
   }
 

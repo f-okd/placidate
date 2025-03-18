@@ -163,6 +163,7 @@ export default function OtherUsersProfileScreen() {
         followerCount={followerCount}
         onFollow={handleFollow}
         onUnfollow={handleUnfollow}
+        canViewContent={canViewContent}
       />
       <FlatList
         data={posts}

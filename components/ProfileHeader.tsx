@@ -1,3 +1,4 @@
+import { showToast } from '@/utils/helpers';
 import { TProfile } from '@/utils/types';
 import { useRouter } from 'expo-router';
 import React, { useState, useMemo } from 'react';
@@ -12,6 +13,7 @@ interface IProfileHeader {
   followingCount: number;
   onFollow: () => void;
   onUnfollow: () => void;
+  canViewContent: boolean;
 }
 
 export default function ProfileHeader({
@@ -23,6 +25,7 @@ export default function ProfileHeader({
   followingCount,
   onFollow,
   onUnfollow,
+  canViewContent,
 }: IProfileHeader) {
   const [isExpanded, setIsExpanded] = useState(false);
   const router = useRouter();
@@ -56,9 +59,11 @@ export default function ProfileHeader({
         <TouchableOpacity
           testID='followers-section'
           onPress={() =>
-            router.push(
-              `/followers?user_id=${profile.id}&username=${profile.username}`
-            )
+            canViewContent
+              ? router.push(
+                  `/followers?user_id=${profile.id}&username=${profile.username}`
+                )
+              : showToast("User's account is private")
           }
         >
           <Text testID='follower-count' className='font-bold text-xl'>
@@ -69,9 +74,11 @@ export default function ProfileHeader({
         <TouchableOpacity
           testID='following-section'
           onPress={() =>
-            router.push(
-              `/following?user_id=${profile.id}&username=${profile.username}`
-            )
+            canViewContent
+              ? router.push(
+                  `/following?user_id=${profile.id}&username=${profile.username}`
+                )
+              : showToast("User's account is private")
           }
         >
           <Text testID='following-count' className='font-bold text-xl'>
