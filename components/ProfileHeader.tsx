@@ -122,7 +122,7 @@ export default function ProfileHeader({
               <TouchableOpacity
                 testID='message-button'
                 className='bg-gray-800 w-[22%] p-2 rounded-lg'
-                onPress={() => router.push('/inbox')}
+                onPress={() => router.push(`/chat?user_id=${profile.id}`)}
               >
                 <Text className='text-white text-center'>Message</Text>
               </TouchableOpacity>
