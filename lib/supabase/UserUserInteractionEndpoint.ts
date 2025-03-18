@@ -144,11 +144,7 @@ class SupabaseUserUserInteractionEndpoint {
     }
   }
 
-  async getChat(
-    userId: string,
-    recipientId: string,
-    limit: number = 50
-  ): Promise<MessageRecord[]> {
+  async getChat(userId: string, recipientId: string): Promise<MessageRecord[]> {
     console.log(userId, recipientId);
     try {
       // Get messages where user is sender or recipient
@@ -157,8 +153,7 @@ class SupabaseUserUserInteractionEndpoint {
         .select('*')
         .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
         .or(`sender_id.eq.${recipientId},receiver_id.eq.${recipientId}`)
-        .order('created_at', { ascending: false })
-        .limit(limit);
+        .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching chat messages:', error);
