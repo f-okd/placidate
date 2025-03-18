@@ -9,7 +9,7 @@ import SupabaseUserUserInteractionEndpoint from '@/lib/supabase/UserUserInteract
 import { TPost, TProfile } from '@/utils/types';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, FlatList, View } from 'react-native';
+import { ActivityIndicator, FlatList, View, Text } from 'react-native';
 
 export default function OtherUsersProfileScreen() {
   const { user_id } = useLocalSearchParams();
@@ -165,6 +165,11 @@ export default function OtherUsersProfileScreen() {
         onUnfollow={handleUnfollow}
         canViewContent={canViewContent}
       />
+      {!canViewContent && (
+        <View className=' items-center justify-center mt-4'>
+          <Text className=' text-4xl text-gray-700'>🔒 PRIVATE 🔒</Text>
+        </View>
+      )}
       <FlatList
         data={posts}
         snapToStart
