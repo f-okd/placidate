@@ -227,7 +227,6 @@ class SupabasePostEndpoint {
     }
   }
 
-  // Update searchForPosts method to respect privacy settings
   async searchForPosts(
     currentlyAuthenticatedUser: string,
     searchTerm: string

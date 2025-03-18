@@ -85,7 +85,6 @@ export default function SearchScreen() {
       default:
         console.log('default search case');
     }
-    console.log(`Searching for ${searchText} in ${searchType}`);
   };
 
   if (loading) {

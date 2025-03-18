@@ -28,7 +28,7 @@ export default function InboxChatPreview({ user }: InboxChatPreviewProps) {
           />
           <View>
             <Text className='font-bold '>{user.username}</Text>
-            <Text>Hi</Text>
+            <Text>Say hi 👋</Text>
           </View>
         </View>
         <Ionicons name='arrow-forward-circle' size={20} />

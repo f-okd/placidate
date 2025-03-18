@@ -1,7 +1,14 @@
 import { useAuth } from '@/providers/AuthProvider';
+import SupabaseUserUserInteractionEndpoint from '@/lib/supabase/UserUserInteractionEndpoint';
 import { Router } from 'expo-router';
-import React from 'react';
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Image,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 interface IUserSearchResult {
   id: string;
@@ -17,6 +24,26 @@ export default function UserSearchResult({
   router,
 }: IUserSearchResult) {
   const { profile: currentlyLoggedInUser } = useAuth();
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const userUserEndpoint = new SupabaseUserUserInteractionEndpoint();
+
+  useEffect(() => {
+    const checkFollowStatus = async () => {
+      setLoading(true);
+      if (currentlyLoggedInUser && id !== currentlyLoggedInUser.id) {
+        const followStatus = await userUserEndpoint.userIsFollowing(
+          currentlyLoggedInUser.id,
+          id
+        );
+        setIsFollowing(followStatus);
+      }
+      setLoading(false);
+    };
+
+    checkFollowStatus();
+  }, [currentlyLoggedInUser, id]);
 
   const navigateToProfile = (): void => {
     if (currentlyLoggedInUser?.id == id) {
@@ -25,11 +52,33 @@ export default function UserSearchResult({
       return router.push(`/user?user_id=${id}`);
     }
   };
+
+  const handleFollow = async () => {
+    if (!currentlyLoggedInUser || currentlyLoggedInUser.id === id) return;
+
+    setLoading(true);
+    try {
+      if (isFollowing) {
+        await userUserEndpoint.unfollowUser(currentlyLoggedInUser.id, id);
+        setIsFollowing(false);
+      } else {
+        await userUserEndpoint.followUser(currentlyLoggedInUser.id, id);
+        setIsFollowing(true);
+      }
+    } catch (error) {
+      console.error('Error toggling follow status:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) return <ActivityIndicator size={'small'} />;
+
   return (
-    <View className='flex-row gap 2'>
+    <View className='flex-row items-center justify-between p-2'>
       <TouchableOpacity
         testID='search-result'
-        className='flex-row items-center p-2'
+        className='flex-row items-center'
         onPress={() => navigateToProfile()}
       >
         <Image
@@ -45,6 +94,20 @@ export default function UserSearchResult({
           {username}
         </Text>
       </TouchableOpacity>
+
+      {currentlyLoggedInUser?.id !== id && loading == false && (
+        <TouchableOpacity
+          className={`px-4 py-2 rounded-full ${
+            isFollowing ? 'bg-gray-300' : 'bg-purple-200'
+          }`}
+          onPress={handleFollow}
+          disabled={loading}
+        >
+          <Text className='text-center font-semibold'>
+            {isFollowing ? 'Unfollow' : 'Follow'}
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }

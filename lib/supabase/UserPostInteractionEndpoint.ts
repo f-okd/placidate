@@ -134,10 +134,7 @@ class SupabaseUserPostInteractionEndpoint {
     }
   }
 
-  async getRecentActivity(
-    userId: string,
-    limit: number = 20
-  ): Promise<ActivityRecord[]> {
+  async getRecentActivity(userId: string): Promise<ActivityRecord[]> {
     try {
       // Get likes on user's posts
       const { data: likes, error: likesError } = await supabase
@@ -260,12 +257,10 @@ class SupabaseUserPostInteractionEndpoint {
       ];
 
       // Sort by date (most recent first) and limit
-      return allActivities
-        .sort(
-          (a, b) =>
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        )
-        .slice(0, limit);
+      return allActivities.sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
     } catch (error) {
       console.error('Error in getRecentActivity:', error);
       return [];
