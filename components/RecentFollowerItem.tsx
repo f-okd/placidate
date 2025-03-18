@@ -12,11 +12,11 @@ import { useAuth } from '@/providers/AuthProvider';
 import SupabaseUserUserInteractionEndpoint from '@/lib/supabase/UserUserInteractionEndpoint';
 import { RecentFollowerRecord, TProfile } from '@/utils/types';
 
-interface FollowerItemProps {
+interface RecentFollowerItemProps {
   follower: RecentFollowerRecord;
 }
 
-const FollowerItem = ({ follower }: FollowerItemProps) => {
+const RecentFollowerItem = ({ follower }: RecentFollowerItemProps) => {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -96,4 +96,4 @@ const FollowerItem = ({ follower }: FollowerItemProps) => {
   );
 };
 
-export default FollowerItem;
+export default RecentFollowerItem;

@@ -5,7 +5,7 @@ import { useFocusEffect } from 'expo-router';
 import { useAuth } from '@/providers/AuthProvider';
 import { RecentFollowerRecord, TProfile } from '@/utils/types';
 import SupabaseUserEndpoint from '@/lib/supabase/UserEndpoint';
-import FollowerItem from '@/components/FollowerItem';
+import RecentFollowerItem from '@/components/RecentFollowerItem';
 
 export default function RecentFollowers() {
   const [followers, setFollowers] = useState<RecentFollowerRecord[]>([]);
@@ -46,7 +46,7 @@ export default function RecentFollowers() {
       ) : followers && followers.length > 0 ? (
         <FlatList
           data={followers}
-          renderItem={({ item }) => <FollowerItem follower={item} />}
+          renderItem={({ item }) => <RecentFollowerItem follower={item} />}
           className='w-full'
           keyExtractor={(item) => item.id}
         />
