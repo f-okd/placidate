@@ -43,7 +43,7 @@ export interface IUpdatedPostDetails {
   tags: string[];
 }
 
-export interface ActivityRecord {
+export type ActivityRecord = {
   id: string;
   type: string;
   created_at: string;
@@ -59,13 +59,21 @@ export interface ActivityRecord {
     author_id: string;
   };
   body?: string;
-}
+};
 
-export interface RecentFollowerRecord {
+export type RecentFollowerRecord = {
   created_at: string;
   id: string;
   username: string;
   avatar_url: string | null;
   bio: string | null;
   is_private: boolean | null;
-}
+};
+
+export type MessageRecord = {
+  body: string;
+  created_at: string;
+  id: string;
+  receiver_id: string;
+  sender_id: string;
+};
