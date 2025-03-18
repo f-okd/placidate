@@ -54,41 +54,10 @@ export default function HomeScreen() {
     getPosts(false, section);
   }, []);
 
-  const switchSection = async (targetSection: activeSectionType) => {
-    setLoading(true);
-    setRefreshing(true);
-    setActiveSection(targetSection); // Move this first
-
-    const posts =
-      targetSection === activeSectionType.RECOMMENDED
-        ? await postEndpoint.getRecommendedPosts(activeProfile.id)
-        : await postEndpoint.getFollowingPosts(activeProfile.id);
-
-    setPosts(posts ?? []);
-    setLoading(false);
-    setRefreshing(false);
-  };
-
   useFocusEffect(
     useCallback(() => {
       getPosts(true, activeSection);
-
-      // Setup real-time subscription for new posts -- do i really want this
-      const subscription = supabase
-        .channel('posts')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'posts' },
-          () => {
-            getPosts(false);
-          }
-        )
-        .subscribe();
-
-      return () => {
-        subscription.unsubscribe();
-      };
-    }, [])
+    }, [activeSection])
   );
 
   if (loading) {
@@ -104,7 +73,7 @@ export default function HomeScreen() {
       <Header title='Placidate' showNotificationIcon={true} />
       <View className='flex-row w-full justify-center items-center gap-4'>
         <TouchableOpacity
-          onPress={() => switchSection(activeSectionType.FOLLOWING)}
+          onPress={() => setActiveSection(activeSectionType.FOLLOWING)}
         >
           <Text
             className={`${
@@ -117,7 +86,7 @@ export default function HomeScreen() {
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => switchSection(activeSectionType.RECOMMENDED)}
+          onPress={() => setActiveSection(activeSectionType.RECOMMENDED)}
         >
           <Text
             className={`${
