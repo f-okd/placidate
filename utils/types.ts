@@ -60,3 +60,12 @@ export interface ActivityRecord {
   };
   body?: string;
 }
+
+export interface RecentFollowerRecord {
+  created_at: string;
+  id: string;
+  username: string;
+  avatar_url: string | null;
+  bio: string | null;
+  is_private: boolean | null;
+}
