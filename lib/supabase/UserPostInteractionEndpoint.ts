@@ -1,4 +1,4 @@
-import { TPost } from '@/utils/types';
+import { ActivityRecord, TPost } from '@/utils/types';
 import { supabase } from './client';
 
 class SupabaseUserPostInteractionEndpoint {
@@ -131,6 +131,169 @@ class SupabaseUserPostInteractionEndpoint {
         `Error removing bookmark of post ${postId} for user ${userId}:`,
         error.message
       );
+    }
+  }
+
+  async getRecentActivity(
+    userId: string,
+    limit: number = 20
+  ): Promise<ActivityRecord[]> {
+    try {
+      // Get likes on user's posts
+      const { data: likes, error: likesError } = await supabase
+        .from('likes')
+        .select(
+          `
+        created_at,
+        user_id,
+        post_id,
+        profiles!likes_user_id_fkey(id, username, avatar_url),
+        posts(id, title, post_type, author_id)
+      `
+        )
+        .eq('posts.author_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (likesError) {
+        console.error('Error fetching likes activity:', likesError);
+        return [];
+      }
+
+      // Get comments on user's posts
+      const { data: comments, error: commentsError } = await supabase
+        .from('comments')
+        .select(
+          `
+        id,
+        created_at,
+        user_id,
+        post_id,
+        body,
+        profiles!comments_user_id_fkey(id, username, avatar_url),
+        posts(id, title, post_type, author_id)
+      `
+        )
+        .eq('posts.author_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (commentsError) {
+        console.error('Error fetching comments activity:', commentsError);
+        return [];
+      }
+
+      // Get bookmarks on user's posts
+      const { data: bookmarks, error: bookmarksError } = await supabase
+        .from('bookmarks')
+        .select(
+          `
+        created_at,
+        user_id,
+        post_id,
+        profiles!bookmarks_user_id_fkey(id, username, avatar_url),
+        posts(id, title, post_type, author_id)
+      `
+        )
+        .eq('posts.author_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (bookmarksError) {
+        console.error('Error fetching bookmarks activity:', bookmarksError);
+        return [];
+      }
+
+      // Get blocks to filter out activities from blocked users
+      const { data: blocks, error: blocksError } = await supabase
+        .from('blocks')
+        .select('blocker_id, blocked_id');
+
+      if (blocksError) {
+        console.error('Error fetching blocks:', blocksError);
+        return [];
+      }
+
+      // Create Sets for efficient lookup
+      const blockedUsers = new Set(
+        blocks
+          ?.filter((block) => block.blocker_id === userId)
+          .map((block) => block.blocked_id)
+      );
+      const blockedByUsers = new Set(
+        blocks
+          ?.filter((block) => block.blocked_id === userId)
+          .map((block) => block.blocker_id)
+      );
+
+      // Combine and format all activities
+      const formattedLikes = likes
+        .filter(
+          (like) =>
+            like.posts &&
+            like.posts.author_id === userId &&
+            !blockedUsers.has(like.user_id) &&
+            !blockedByUsers.has(like.user_id)
+        )
+        .map((like) => ({
+          id: `like_${like.user_id}_${like.post_id}_${new Date(
+            like.created_at
+          ).getTime()}`,
+          type: 'like',
+          created_at: like.created_at,
+          user: like.profiles,
+          post: like.posts,
+        }));
+
+      const formattedComments = comments
+        .filter(
+          (comment) =>
+            comment.posts &&
+            comment.posts.author_id === userId &&
+            !blockedUsers.has(comment.user_id) &&
+            !blockedByUsers.has(comment.user_id)
+        )
+        .map((comment) => ({
+          id: comment.id,
+          type: 'comment',
+          created_at: comment.created_at,
+          user: comment.profiles,
+          post: comment.posts,
+          body: comment.body,
+        }));
+
+      const formattedBookmarks = bookmarks
+        .filter(
+          (bookmark) =>
+            bookmark.posts &&
+            bookmark.posts.author_id === userId &&
+            !blockedUsers.has(bookmark.user_id) &&
+            !blockedByUsers.has(bookmark.user_id)
+        )
+        .map((bookmark) => ({
+          id: `bookmark_${bookmark.user_id}_${bookmark.post_id}_${new Date(
+            bookmark.created_at
+          ).getTime()}`,
+          type: 'bookmark',
+          created_at: bookmark.created_at,
+          user: bookmark.profiles,
+          post: bookmark.posts,
+        }));
+
+      // Combine all activities
+      const allActivities = [
+        ...formattedLikes,
+        ...formattedComments,
+        ...formattedBookmarks,
+      ];
+
+      // Sort by date (most recent first) and limit
+      return allActivities
+        .sort(
+          (a, b) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        )
+        .slice(0, limit);
+    } catch (error) {
+      console.error('Error in getRecentActivity:', error);
+      return [];
     }
   }
 }

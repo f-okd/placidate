@@ -42,3 +42,21 @@ export interface IUpdatedPostDetails {
   body: string;
   tags: string[];
 }
+
+export interface ActivityRecord {
+  id: string;
+  type: string;
+  created_at: string;
+  user: {
+    id: string;
+    username: string;
+    avatar_url: string | null;
+  };
+  post: {
+    id: string;
+    title: string;
+    post_type: string;
+    author_id: string;
+  };
+  body?: string;
+}
