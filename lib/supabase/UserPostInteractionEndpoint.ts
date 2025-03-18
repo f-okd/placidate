@@ -201,36 +201,13 @@ class SupabaseUserPostInteractionEndpoint {
         return [];
       }
 
-      // Get blocks to filter out activities from blocked users
-      const { data: blocks, error: blocksError } = await supabase
-        .from('blocks')
-        .select('blocker_id, blocked_id');
-
-      if (blocksError) {
-        console.error('Error fetching blocks:', blocksError);
-        return [];
-      }
-
-      // Create Sets for efficient lookup
-      const blockedUsers = new Set(
-        blocks
-          ?.filter((block) => block.blocker_id === userId)
-          .map((block) => block.blocked_id)
-      );
-      const blockedByUsers = new Set(
-        blocks
-          ?.filter((block) => block.blocked_id === userId)
-          .map((block) => block.blocker_id)
-      );
-
       // Combine and format all activities
       const formattedLikes = likes
         .filter(
           (like) =>
             like.posts &&
             like.posts.author_id === userId &&
-            !blockedUsers.has(like.user_id) &&
-            !blockedByUsers.has(like.user_id)
+            like.user_id != userId
         )
         .map((like) => ({
           id: `like_${like.user_id}_${like.post_id}_${new Date(
@@ -247,8 +224,7 @@ class SupabaseUserPostInteractionEndpoint {
           (comment) =>
             comment.posts &&
             comment.posts.author_id === userId &&
-            !blockedUsers.has(comment.user_id) &&
-            !blockedByUsers.has(comment.user_id)
+            comment.user_id != userId
         )
         .map((comment) => ({
           id: comment.id,
@@ -264,8 +240,7 @@ class SupabaseUserPostInteractionEndpoint {
           (bookmark) =>
             bookmark.posts &&
             bookmark.posts.author_id === userId &&
-            !blockedUsers.has(bookmark.user_id) &&
-            !blockedByUsers.has(bookmark.user_id)
+            bookmark.user_id != userId
         )
         .map((bookmark) => ({
           id: `bookmark_${bookmark.user_id}_${bookmark.post_id}_${new Date(
