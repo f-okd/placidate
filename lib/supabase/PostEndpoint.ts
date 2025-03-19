@@ -5,7 +5,10 @@ import {
   TPost,
 } from '@/utils/types';
 import { supabase } from './client';
-import { PLACIDATE_SERVER_BASE_URL } from './UserEndpoint';
+
+const PLACIDATE_SERVER_BASE_URL = String(
+  process.env.EXPO_PUBLIC_SERVER_BASE_URL
+);
 
 class SupabasePostEndpoint {
   async getCommentsAndAuthors(
