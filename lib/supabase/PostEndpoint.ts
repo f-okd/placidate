@@ -6,9 +6,10 @@ import {
 } from '@/utils/types';
 import { supabase } from './client';
 
-const PLACIDATE_SERVER_BASE_URL = String(
-  process.env.EXPO_PUBLIC_SERVER_BASE_URL
-);
+const PLACIDATE_SERVER_BASE_URL =
+  process.env.NODE_ENV == 'production'
+    ? String(process.env.EXPO_PUBLIC_SERVER_BASE_URL)
+    : 'http://10.0.2.2:8000';
 
 class SupabasePostEndpoint {
   async getCommentsAndAuthors(
@@ -208,6 +209,7 @@ class SupabasePostEndpoint {
     userId: string
   ): Promise<TGetHomePagePost[] | null> {
     try {
+      console.log(`${PLACIDATE_SERVER_BASE_URL}/api/recommendations/${userId}`);
       const response = await fetch(
         `${PLACIDATE_SERVER_BASE_URL}/api/recommendations/${userId}`,
         {
@@ -219,6 +221,7 @@ class SupabasePostEndpoint {
       );
 
       if (!response.ok) {
+        console.log(response);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 

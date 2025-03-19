@@ -17,6 +17,7 @@ interface IActionBar {
   onDelete: () => Promise<void>;
   onEdit: () => Promise<void>;
   onShare: () => Promise<void>;
+  onSendInChat: () => void;
 }
 
 export default function ActionBar({
@@ -30,6 +31,7 @@ export default function ActionBar({
   onDelete,
   onEdit,
   onShare,
+  onSendInChat,
 }: IActionBar) {
   const [modalVisible, setModalVisible] = useState(false);
   const { profile } = useAuth();
@@ -88,6 +90,13 @@ export default function ActionBar({
               {authorId == profile?.id ? (
                 <>
                   <TouchableOpacity
+                    onPress={onSendInChat}
+                    className='flex-row items-center gap-2 p-2'
+                  >
+                    <Ionicons name='send-outline' size={24} color='black' />
+                    <Text className='text-lg'>Send as Message</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
                     testID='edit-button'
                     className='flex-row items-center gap-2 p-2'
                     onPress={onEdit}
@@ -133,6 +142,13 @@ export default function ActionBar({
                       color='black'
                     />
                     <Text className='text-lg'>Share Post</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={onSendInChat}
+                    className='flex-row items-center gap-2 p-2'
+                  >
+                    <Ionicons name='send-outline' size={24} color='black' />
+                    <Text className='text-lg'>Send as Message</Text>
                   </TouchableOpacity>
                 </>
               )}

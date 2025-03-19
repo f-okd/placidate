@@ -9,6 +9,7 @@ import {
   Platform,
   StyleSheet,
   Keyboard,
+  Image,
 } from 'react-native';
 import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
@@ -16,11 +17,15 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { MessageRecord, TProfile } from '@/utils/types';
 import SupabaseUserUserInteractionEndpoint from '@/lib/supabase/UserUserInteractionEndpoint';
 import SupabaseUserEndpoint from '@/lib/supabase/UserEndpoint';
+import SupabasePostEndpoint from '@/lib/supabase/PostEndpoint';
 import { showToast } from '@/utils/helpers';
 import Header from '@/components/TopLevelHeader';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
+
+// Regular expression to match post links in format {{post:POST_ID}}
+const POST_LINK_REGEX = /\{\{post:([a-zA-Z0-9-]+)\}\}/;
 
 export default function Chat() {
   const [recipient, setRecipient] = useState<TProfile | null>(null);
@@ -28,6 +33,7 @@ export default function Chat() {
   const [loading, setLoading] = useState<boolean>(true);
   const [text, setText] = useState<string>('');
   const [sending, setSending] = useState<boolean>(false);
+  const [postCache, setPostCache] = useState<Record<string, any>>({});
   const flatListRef = useRef<FlatList>(null);
 
   const params = useLocalSearchParams();
@@ -39,6 +45,7 @@ export default function Chat() {
   const router = useRouter();
   const userUserEndpoint = new SupabaseUserUserInteractionEndpoint();
   const userEndpoint = new SupabaseUserEndpoint();
+  const postEndpoint = new SupabasePostEndpoint();
 
   const fetchAndLoadChat = async (): Promise<void> => {
     const chatMessages = await userUserEndpoint.getChat(
@@ -46,6 +53,44 @@ export default function Chat() {
       user_id
     );
     setMessages(chatMessages);
+
+    // Preload any post data from shared posts
+    await loadPostData(chatMessages);
+  };
+
+  const handleChangeText = (text: string): void => {
+    const filteredText = text.replace(/[{}]/g, '');
+    setText(filteredText);
+  };
+
+  // New function to load post data for all shared posts in messages
+  const loadPostData = async (messages: MessageRecord[]): Promise<void> => {
+    const postIds = new Set<string>();
+    const newPostCache: Record<string, any> = { ...postCache };
+
+    // Extract all post IDs from messages
+    messages.forEach((message) => {
+      const match = message.body.match(POST_LINK_REGEX);
+      if (match && match[1]) {
+        postIds.add(match[1]);
+      }
+    });
+
+    // Fetch post details for each post ID
+    for (const postId of postIds) {
+      if (!newPostCache[postId]) {
+        try {
+          const postDetails = await postEndpoint.getPostDetails(postId);
+          if (postDetails) {
+            newPostCache[postId] = postDetails;
+          }
+        } catch (error) {
+          console.error(`Error fetching post ${postId}:`, error);
+        }
+      }
+    }
+
+    setPostCache(newPostCache);
   };
 
   const fetchAndSetUser = async (): Promise<void> => {
@@ -110,8 +155,25 @@ export default function Chat() {
           table: 'messages',
           filter: `receiver_id=eq.${activeProfile.id}`,
         },
-        (payload) => {
+        async (payload) => {
           const newMessage = payload.new as MessageRecord;
+
+          // Check if this is a post share message that requires loading post data
+          const match = newMessage.body.match(POST_LINK_REGEX);
+          if (match && match[1]) {
+            const postId = match[1];
+            if (!postCache[postId]) {
+              try {
+                const postDetails = await postEndpoint.getPostDetails(postId);
+                if (postDetails) {
+                  setPostCache((prev) => ({ ...prev, [postId]: postDetails }));
+                }
+              } catch (error) {
+                console.error(`Error fetching post ${postId}:`, error);
+              }
+            }
+          }
+
           setMessages((prev) => [...prev, newMessage]);
           scrollToBottom();
         }
@@ -121,7 +183,7 @@ export default function Chat() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [activeProfile.id, user_id]);
+  }, [activeProfile.id, user_id, postCache]);
 
   // Set up keyboard listeners to scroll when keyboard appears
   useEffect(() => {
@@ -154,6 +216,64 @@ export default function Chat() {
     }
   }, [messages.length]);
 
+  const navigateToPost = (postId: string) => {
+    router.push(`/post?post_id=${postId}`);
+  };
+
+  // Render the message body or a post preview if it's a shared post
+  const renderMessageContent = (message: MessageRecord) => {
+    const match = message.body.match(POST_LINK_REGEX);
+
+    if (match && match[1]) {
+      const postId = match[1];
+      const post = postCache[postId];
+
+      const textContent = message.body.split(POST_LINK_REGEX)[0].trim();
+
+      if (post) {
+        return (
+          <View>
+            {textContent && (
+              <Text style={styles.messageText}>{textContent}</Text>
+            )}
+            <TouchableOpacity
+              style={styles.sharedPostContainer}
+              onPress={() => navigateToPost(postId)}
+            >
+              <View style={styles.sharedPostHeader}>
+                <Text style={styles.sharedPostType}>{post.post_type}</Text>
+                <Ionicons name='open-outline' size={16} color='#666' />
+              </View>
+              <Text style={styles.sharedPostTitle}>{post.title}</Text>
+              <Text numberOfLines={2} style={styles.sharedPostPreview}>
+                {post.body.substring(0, 100)}
+                {post.body.length > 100 ? '...' : ''}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        );
+      } else {
+        // Post not loaded or doesn't exist
+        return (
+          <View>
+            {textContent && (
+              <Text style={styles.messageText}>{textContent}</Text>
+            )}
+            <TouchableOpacity
+              style={styles.sharedPostContainer}
+              onPress={() => navigateToPost(postId)}
+            >
+              <Text style={styles.messageText}>Shared post (tap to view)</Text>
+            </TouchableOpacity>
+          </View>
+        );
+      }
+    }
+
+    // Regular message
+    return <Text style={styles.messageText}>{message.body}</Text>;
+  };
+
   const renderMessage = ({ item }: { item: MessageRecord }) => {
     const isMyMessage = item.sender_id === activeProfile.id;
 
@@ -164,7 +284,7 @@ export default function Chat() {
           isMyMessage ? styles.myMessage : styles.theirMessage,
         ]}
       >
-        <Text style={styles.messageText}>{item.body}</Text>
+        {renderMessageContent(item)}
         <Text style={styles.timestampText}>
           {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
         </Text>
@@ -211,7 +331,7 @@ export default function Chat() {
             className='flex-1 bg-gray-100 rounded-full px-4 py-2 mr-2'
             placeholder='Type a message...'
             value={text}
-            onChangeText={setText}
+            onChangeText={handleChangeText}
             multiline
             onFocus={() => scrollToBottom()}
           />
@@ -257,5 +377,33 @@ const styles = StyleSheet.create({
     color: '#999',
     marginTop: 5,
     alignSelf: 'flex-end',
+  },
+  sharedPostContainer: {
+    marginTop: 5,
+    padding: 8,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  sharedPostHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  sharedPostType: {
+    fontSize: 12,
+    color: '#666',
+    textTransform: 'uppercase',
+  },
+  sharedPostTitle: {
+    fontWeight: 'bold',
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  sharedPostPreview: {
+    fontSize: 12,
+    color: '#333',
   },
 });

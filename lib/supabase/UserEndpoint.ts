@@ -4,7 +4,10 @@ import { supabase } from './client';
 import { RecentFollowerRecord, TProfile } from '@/utils/types';
 import { showToast } from '@/utils/helpers';
 
-const PLACIDATE_SERVER_BASE_URL = process.env.EXPO_PUBLIC_SERVER_BASE_URL;
+const PLACIDATE_SERVER_BASE_URL =
+  process.env.NODE_ENV == 'production'
+    ? String(process.env.EXPO_PUBLIC_SERVER_BASE_URL)
+    : 'http://10.0.2.2:8000';
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
 
 class SupabaseUserEndpoint {
