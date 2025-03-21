@@ -209,7 +209,6 @@ class SupabasePostEndpoint {
     userId: string
   ): Promise<TGetHomePagePost[] | null> {
     try {
-      console.log(`${PLACIDATE_SERVER_BASE_URL}/api/recommendations/${userId}`);
       const response = await fetch(
         `${PLACIDATE_SERVER_BASE_URL}/api/recommendations/${userId}`,
         {
@@ -221,7 +220,7 @@ class SupabasePostEndpoint {
       );
 
       if (!response.ok) {
-        console.log(response);
+        // console.log(response);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 

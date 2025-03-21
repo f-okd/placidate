@@ -17,7 +17,6 @@ class SupabaseUserUserInteractionEndpoint {
     followerUserId: string,
     followingUserId: string
   ): Promise<void> {
-    console.log(followerUserId, followingUserId);
     const { error } = await supabase
       .from('follows')
       .delete()
@@ -145,7 +144,6 @@ class SupabaseUserUserInteractionEndpoint {
   }
 
   async getChat(userId: string, recipientId: string): Promise<MessageRecord[]> {
-    console.log(userId, recipientId);
     try {
       // Get messages where user is sender or recipient
       const { data, error } = await supabase

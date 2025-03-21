@@ -9,7 +9,6 @@ import {
   Platform,
   StyleSheet,
   Keyboard,
-  Image,
 } from 'react-native';
 import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
@@ -27,13 +26,17 @@ import { formatDistanceToNow } from 'date-fns';
 // Regular expression to match post links in format {{post:POST_ID}}
 const POST_LINK_REGEX = /\{\{post:([a-zA-Z0-9-]+)\}\}/;
 
+// Enhanced MessageRecord type with post data
+type EnhancedMessageRecord = MessageRecord & {
+  postData?: any;
+};
+
 export default function Chat() {
   const [recipient, setRecipient] = useState<TProfile | null>(null);
-  const [messages, setMessages] = useState<MessageRecord[]>([]);
+  const [messages, setMessages] = useState<EnhancedMessageRecord[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [text, setText] = useState<string>('');
   const [sending, setSending] = useState<boolean>(false);
-  const [postCache, setPostCache] = useState<Record<string, any>>({});
   const flatListRef = useRef<FlatList>(null);
 
   const params = useLocalSearchParams();
@@ -48,49 +51,58 @@ export default function Chat() {
   const postEndpoint = new SupabasePostEndpoint();
 
   const fetchAndLoadChat = async (): Promise<void> => {
+    // Get chat messages
     const chatMessages = await userUserEndpoint.getChat(
       activeProfile.id,
       user_id
     );
-    setMessages(chatMessages);
 
-    // Preload any post data from shared posts
-    await loadPostData(chatMessages);
+    // Enhance messages with post data if needed
+    const enhancedMessages = await enhanceMessagesWithPostData(chatMessages);
+    setMessages(enhancedMessages);
   };
 
-  const handleChangeText = (text: string): void => {
-    const filteredText = text.replace(/[{}]/g, '');
-    setText(filteredText);
-  };
-
-  // New function to load post data for all shared posts in messages
-  const loadPostData = async (messages: MessageRecord[]): Promise<void> => {
+  // Function to add post data to messages
+  const enhanceMessagesWithPostData = async (
+    messages: MessageRecord[]
+  ): Promise<EnhancedMessageRecord[]> => {
     const postIds = new Set<string>();
-    const newPostCache: Record<string, any> = { ...postCache };
+    const postData: Record<string, any> = {};
+    const messagePostMap: Record<string, string> = {}; // Maps message ID to post ID
 
-    // Extract all post IDs from messages
+    // Collect all post IDs and track which messages contain which posts
     messages.forEach((message) => {
       const match = message.body.match(POST_LINK_REGEX);
       if (match && match[1]) {
-        postIds.add(match[1]);
+        const postId = match[1];
+        postIds.add(postId);
+        messagePostMap[message.id] = postId;
       }
     });
 
-    // Fetch post details for each post ID
+    // Fetch post data for all IDs
     for (const postId of postIds) {
-      if (!newPostCache[postId]) {
-        try {
-          const postDetails = await postEndpoint.getPostDetails(postId);
-          if (postDetails) {
-            newPostCache[postId] = postDetails;
-          }
-        } catch (error) {
-          console.error(`Error fetching post ${postId}:`, error);
+      try {
+        const postDetails = await postEndpoint.getPostDetails(postId);
+        if (postDetails) {
+          postData[postId] = postDetails;
         }
+      } catch (error) {
+        console.error(`Error fetching post ${postId}:`, error);
       }
     }
 
-    setPostCache(newPostCache);
+    // Attach post data to messages using our map
+    return messages.map((message) => {
+      const postId = messagePostMap[message.id];
+      if (postId && postData[postId]) {
+        return {
+          ...message,
+          postData: postData[postId],
+        };
+      }
+      return message;
+    });
   };
 
   const fetchAndSetUser = async (): Promise<void> => {
@@ -158,23 +170,26 @@ export default function Chat() {
         async (payload) => {
           const newMessage = payload.new as MessageRecord;
 
-          // Check if this is a post share message that requires loading post data
+          // Check if this is a post share message
+          let enhancedMessage = newMessage as EnhancedMessageRecord;
+
           const match = newMessage.body.match(POST_LINK_REGEX);
+
           if (match && match[1]) {
-            const postId = match[1];
-            if (!postCache[postId]) {
-              try {
-                const postDetails = await postEndpoint.getPostDetails(postId);
-                if (postDetails) {
-                  setPostCache((prev) => ({ ...prev, [postId]: postDetails }));
-                }
-              } catch (error) {
-                console.error(`Error fetching post ${postId}:`, error);
+            try {
+              const postDetails = await postEndpoint.getPostDetails(match[1]);
+              if (postDetails) {
+                enhancedMessage = {
+                  ...newMessage,
+                  postData: postDetails,
+                };
               }
+            } catch (error) {
+              console.error(`Error fetching post data:`, error);
             }
           }
 
-          setMessages((prev) => [...prev, newMessage]);
+          setMessages((prev) => [...prev, enhancedMessage]);
           scrollToBottom();
         }
       )
@@ -183,7 +198,7 @@ export default function Chat() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [activeProfile.id, user_id, postCache]);
+  }, [activeProfile.id, user_id]);
 
   // Set up keyboard listeners to scroll when keyboard appears
   useEffect(() => {
@@ -216,18 +231,20 @@ export default function Chat() {
     }
   }, [messages.length]);
 
+  // Navigate to a post
   const navigateToPost = (postId: string) => {
     router.push(`/post?post_id=${postId}`);
   };
 
-  // Render the message body or a post preview if it's a shared post
-  const renderMessageContent = (message: MessageRecord) => {
+  // Render the message content
+  const renderMessageContent = (message: EnhancedMessageRecord) => {
     const match = message.body.match(POST_LINK_REGEX);
 
     if (match && match[1]) {
       const postId = match[1];
-      const post = postCache[postId];
+      const post = message.postData;
 
+      // Extract the text part before the post link
       const textContent = message.body.split(POST_LINK_REGEX)[0].trim();
 
       if (post) {
@@ -256,9 +273,6 @@ export default function Chat() {
         // Post not loaded or doesn't exist
         return (
           <View>
-            {textContent && (
-              <Text style={styles.messageText}>{textContent}</Text>
-            )}
             <TouchableOpacity
               style={styles.sharedPostContainer}
               onPress={() => navigateToPost(postId)}
@@ -274,7 +288,7 @@ export default function Chat() {
     return <Text style={styles.messageText}>{message.body}</Text>;
   };
 
-  const renderMessage = ({ item }: { item: MessageRecord }) => {
+  const renderMessage = ({ item }: { item: EnhancedMessageRecord }) => {
     const isMyMessage = item.sender_id === activeProfile.id;
 
     return (
@@ -331,7 +345,7 @@ export default function Chat() {
             className='flex-1 bg-gray-100 rounded-full px-4 py-2 mr-2'
             placeholder='Type a message...'
             value={text}
-            onChangeText={handleChangeText}
+            onChangeText={setText}
             multiline
             onFocus={() => scrollToBottom()}
           />
