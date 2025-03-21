@@ -91,7 +91,7 @@ export default function ViewPostScreen() {
   };
 
   const loadComments = async (): Promise<void> => {
-    const comments = await postEndpoint.getCommentsAndAuthors(
+    const comments = await postEndpoint.getComments(
       activeProfile.id,
       String(post_id)
     );

@@ -1,5 +1,5 @@
 class MockSupabasePostEndpoint {
-  getCommentsAndAuthors = jest.fn();
+  getComments = jest.fn();
   getFollowingPosts = jest.fn();
   getRecommendedPosts = jest.fn();
   searchForPosts = jest.fn();

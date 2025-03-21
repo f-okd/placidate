@@ -12,7 +12,7 @@ const PLACIDATE_SERVER_BASE_URL =
     : 'http://10.0.2.2:8000';
 
 class SupabasePostEndpoint {
-  async getCommentsAndAuthors(
+  async getComments(
     currentlyAuthenticatedUser: string,
     post_id: string
   ): Promise<TCommentsAndAuthors[] | null> {
@@ -84,7 +84,7 @@ class SupabasePostEndpoint {
             currentlyAuthenticatedUser === postAuthorId,
         }));
     } catch (error) {
-      console.error('Error in getCommentsAndAuthors:', error);
+      console.error('Error in getComments:', error);
       return null;
     }
   }
