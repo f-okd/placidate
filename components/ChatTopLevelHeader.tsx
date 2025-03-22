@@ -19,15 +19,13 @@ export default function Header({ username, userId }: IHeaderProps) {
         </TouchableOpacity>
       </View>
       <View>
-        <TouchableOpacity testID='username'>
-          <Text
-            className='text-black font-bold text-2xl'
-            onPress={
-              userId ? () => router.push(`/user?user_id=${userId}`) : () => {}
-            }
-          >
-            {username}
-          </Text>
+        <TouchableOpacity
+          testID='username'
+          onPress={
+            userId ? () => router.push(`/user?user_id=${userId}`) : () => {}
+          }
+        >
+          <Text className='text-black font-bold text-2xl'>{username}</Text>
         </TouchableOpacity>
       </View>
       <View className='w-10'>
