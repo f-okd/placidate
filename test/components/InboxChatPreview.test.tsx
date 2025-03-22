@@ -18,7 +18,7 @@ describe('InboxChatPreview', () => {
   const mockUser: TProfile = {
     id: 'user-123',
     username: 'testuser',
-    avatar_url: 'https://example.com/avatar.jpg',
+    avatar_url: 'https://via.placeholder.com/150/92c952',
     bio: 'Test bio',
     is_private: false,
     updated_at: null,
