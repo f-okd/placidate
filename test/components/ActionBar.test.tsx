@@ -109,7 +109,7 @@ describe('ActionBar', () => {
     expect(screen.queryByTestId('modal')).toBeTruthy();
   });
 
-  it('should show block, report, share and send as message buttons after pressing options button when author is not current user', async () => {
+  it('should show share post, send as message, block, and report buttons after pressing options button when author is not current user', async () => {
     render(<ActionBar {...mockProps} />);
 
     await act(async () => {
@@ -118,6 +118,8 @@ describe('ActionBar', () => {
 
     expect(screen.queryByTestId('edit-button')).toBeNull();
     expect(screen.queryByTestId('delete-button')).toBeNull();
+    expect(screen.getByTestId('send-button')).toBeTruthy();
+    expect(screen.getByTestId('share-button')).toBeTruthy();
     expect(screen.getByTestId('report-button')).toBeTruthy();
     expect(screen.getByTestId('block-button')).toBeTruthy();
   });
@@ -184,13 +186,15 @@ describe('ActionBar', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/(tabs)');
   });
 
-  it('should show send as message, edit and delete buttons after pressing the options button when author is current user', async () => {
+  it('should show share post, send as message, edit post and delete post buttons after pressing the options button when author is current user', async () => {
     render(<ActionBar {...{ ...mockProps, authorId: 'current-user-id' }} />);
 
     await act(async () => {
       fireEvent.press(screen.getByTestId('more-options-button'));
     });
 
+    expect(screen.getByTestId('send-button')).toBeTruthy();
+    expect(screen.getByTestId('share-button')).toBeTruthy();
     expect(screen.getByTestId('edit-button')).toBeTruthy();
     expect(screen.getByTestId('delete-button')).toBeTruthy();
     expect(screen.queryByTestId('report-button')).toBeNull();
