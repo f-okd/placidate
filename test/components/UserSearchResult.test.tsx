@@ -18,7 +18,7 @@ const mockRouter = {
   push: mockNavigate,
 } as unknown as Router;
 
-const mockUserIsFollowing = jest.fn().mockResolvedValue(true); // Changed to mockResolvedValue for async
+const mockUserIsFollowing = jest.fn().mockResolvedValue(true);
 const mockEndpoint = getMockSupabaseUserUserInteractionEndpoint();
 
 jest.mock('@/lib/supabase/UserUserInteractionEndpoint', () => {
