@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  StyleSheet,
   Keyboard,
 } from 'react-native';
 import React, { useCallback, useState, useRef, useEffect } from 'react';
@@ -18,10 +17,10 @@ import SupabaseUserUserInteractionEndpoint from '@/lib/supabase/UserUserInteract
 import SupabaseUserEndpoint from '@/lib/supabase/UserEndpoint';
 import SupabasePostEndpoint from '@/lib/supabase/PostEndpoint';
 import { showToast } from '@/utils/helpers';
-import Header from '@/components/TopLevelHeader';
+import Header from '@/components/ChatTopLevelHeader';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase/client';
-import { formatDistanceToNow } from 'date-fns';
+import Message, { MessageData } from '@/components/Message';
 
 // Regular expression to match post links in format {{post:POST_ID}}
 const POST_LINK_REGEX = /\{\{post:([a-zA-Z0-9-]+)\}\}/;
@@ -236,76 +235,6 @@ export default function Chat() {
     router.push(`/post?post_id=${postId}`);
   };
 
-  // Render the message content
-  const renderMessageContent = (message: EnhancedMessageRecord) => {
-    const match = message.body.match(POST_LINK_REGEX);
-
-    if (match && match[1]) {
-      const postId = match[1];
-      const post = message.postData;
-
-      // Extract the text part before the post link
-      const textContent = message.body.split(POST_LINK_REGEX)[0].trim();
-
-      if (post) {
-        return (
-          <View>
-            {textContent && (
-              <Text style={styles.messageText}>{textContent}</Text>
-            )}
-            <TouchableOpacity
-              style={styles.sharedPostContainer}
-              onPress={() => navigateToPost(postId)}
-            >
-              <View style={styles.sharedPostHeader}>
-                <Text style={styles.sharedPostType}>{post.post_type}</Text>
-                <Ionicons name='open-outline' size={16} color='#666' />
-              </View>
-              <Text style={styles.sharedPostTitle}>{post.title}</Text>
-              <Text numberOfLines={2} style={styles.sharedPostPreview}>
-                {post.body.substring(0, 100)}
-                {post.body.length > 100 ? '...' : ''}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        );
-      } else {
-        // Post not loaded or doesn't exist
-        return (
-          <View>
-            <TouchableOpacity
-              style={styles.sharedPostContainer}
-              onPress={() => navigateToPost(postId)}
-            >
-              <Text style={styles.messageText}>Shared post (tap to view)</Text>
-            </TouchableOpacity>
-          </View>
-        );
-      }
-    }
-
-    // Regular message
-    return <Text style={styles.messageText}>{message.body}</Text>;
-  };
-
-  const renderMessage = ({ item }: { item: EnhancedMessageRecord }) => {
-    const isMyMessage = item.sender_id === activeProfile.id;
-
-    return (
-      <View
-        style={[
-          styles.messageBubble,
-          isMyMessage ? styles.myMessage : styles.theirMessage,
-        ]}
-      >
-        {renderMessageContent(item)}
-        <Text style={styles.timestampText}>
-          {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
-        </Text>
-      </View>
-    );
-  };
-
   if (loading) {
     return (
       <View className='flex-1 items-center justify-center bg-white'>
@@ -322,15 +251,20 @@ export default function Chat() {
     >
       <View className='flex-1'>
         <Header
-          title={recipient?.username || 'Chat'}
-          showBackIcon={true}
-          showNotificationIcon={false}
+          username={recipient?.username || 'Chat'}
+          userId={recipient?.id as string}
         />
 
         <FlatList
           ref={flatListRef}
           data={messages}
-          renderItem={renderMessage}
+          renderItem={({ item }) => (
+            <Message
+              message={item as MessageData}
+              isMyMessage={item.sender_id === activeProfile.id}
+              navigateToPost={navigateToPost}
+            />
+          )}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{
             paddingHorizontal: 10,
@@ -365,59 +299,3 @@ export default function Chat() {
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  messageBubble: {
-    maxWidth: '80%',
-    padding: 10,
-    borderRadius: 15,
-    marginVertical: 5,
-  },
-  myMessage: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#DCF8C6',
-    borderBottomRightRadius: 0,
-  },
-  theirMessage: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#F0F0F0',
-    borderBottomLeftRadius: 0,
-  },
-  messageText: {
-    fontSize: 16,
-  },
-  timestampText: {
-    fontSize: 10,
-    color: '#999',
-    marginTop: 5,
-    alignSelf: 'flex-end',
-  },
-  sharedPostContainer: {
-    marginTop: 5,
-    padding: 8,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  sharedPostHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  sharedPostType: {
-    fontSize: 12,
-    color: '#666',
-    textTransform: 'uppercase',
-  },
-  sharedPostTitle: {
-    fontWeight: 'bold',
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  sharedPostPreview: {
-    fontSize: 12,
-    color: '#333',
-  },
-});
