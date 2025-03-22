@@ -13,7 +13,7 @@ jest.mock('expo-router', () => ({
 const mockUser: TProfile = {
   id: 'user-123',
   username: 'testuser',
-  avatar_url: null,
+  avatar_url: 'https://via.placeholder.com/150/92c952',
   bio: null,
   is_private: false,
   updated_at: null,
@@ -49,6 +49,11 @@ describe('ActivityItem', () => {
     expect(screen.getByTestId('activity-text')).toHaveTextContent(
       `${mockUser.username} liked your ${mockPost.post_type}: "${mockPost.title}"`
     );
+    expect(screen.getByTestId('avatar')).toBeTruthy();
+    expect(screen.getByTestId('timestamp')).toBeTruthy();
+    expect(screen.getByTestId('timestamp')).toHaveTextContent(
+      'less than a minute ago'
+    );
   });
 
   it('renders comment activity correctly', () => {
@@ -81,13 +86,13 @@ describe('ActivityItem', () => {
     );
   });
 
-  it('renders activity with avatar when provided', () => {
+  it('It should render activity with default avatar when one is not provided', () => {
     const activityWithAvatar: ActivityRecord = {
       ...mockActivityBase,
       type: 'like',
       user: {
         ...mockUser,
-        avatar_url: 'https://via.placeholder.com/150/92c952',
+        avatar_url: null,
       },
     };
 
@@ -117,7 +122,7 @@ describe('ActivityItem', () => {
 
   it('displays formatted time', () => {
     const fixedDate = new Date();
-    fixedDate.setHours(fixedDate.getHours() - 2); // 2 hours ago
+    fixedDate.setHours(fixedDate.getHours() - 3); // 3 hours ago
 
     const activityWithTime: ActivityRecord = {
       ...mockActivityBase,
@@ -128,7 +133,7 @@ describe('ActivityItem', () => {
     render(<ActivityItem item={activityWithTime} />);
     expect(screen.getByTestId('timestamp')).toBeTruthy();
     expect(screen.getByTestId('timestamp')).toHaveTextContent(
-      'about 2 hours ago'
+      'about 3 hours ago'
     );
   });
 });
