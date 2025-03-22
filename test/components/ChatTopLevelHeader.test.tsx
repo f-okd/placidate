@@ -17,14 +17,14 @@ describe('ChatTopLevelHeader', () => {
     jest.clearAllMocks();
   });
 
-  test('renders with username and back button', () => {
+  it('should render correctly', () => {
     render(<ChatTopLevelHeader username='testuser' userId='user-123' />);
 
     expect(screen.getByText('testuser')).toBeTruthy();
     expect(screen.getByTestId('back-button')).toBeTruthy();
   });
 
-  test('navigates back when back button is pressed', () => {
+  it('should navigate back when back button is pressed', () => {
     render(<ChatTopLevelHeader username='testuser' userId='user-123' />);
 
     const backButton = screen.getByTestId('back-button');
@@ -33,7 +33,7 @@ describe('ChatTopLevelHeader', () => {
     expect(mockNavigateBack).toHaveBeenCalledTimes(1);
   });
 
-  test('navigates to user profile when username is pressed', () => {
+  it('should navigate to user profile when username is pressed', () => {
     render(<ChatTopLevelHeader username='testuser' userId='user-123' />);
 
     const username = screen.getByTestId('username');
