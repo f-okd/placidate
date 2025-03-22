@@ -13,6 +13,7 @@ export default function InboxChatPreview({ user }: InboxChatPreviewProps) {
 
   return (
     <TouchableOpacity
+      testID='chat-preview-component'
       onPress={() => router.push(`/chat?user_id=${user.id}`)}
       className='flex-row gap-2 items-center w-full m-1'
     >
@@ -25,13 +26,20 @@ export default function InboxChatPreview({ user }: InboxChatPreviewProps) {
                 : require('@/assets/images/default-avatar.jpg')
             }
             className='w-12 h-12 rounded-full mr-3'
+            testID='avatar'
           />
           <View>
-            <Text className='font-bold '>{user.username}</Text>
-            <Text>Say hi 👋</Text>
+            <Text className='font-bold ' testID='username'>
+              {user.username}
+            </Text>
+            <Text testID='message-preview'>Say hi 👋</Text>
           </View>
         </View>
-        <Ionicons name='arrow-forward-circle' size={20} />
+        <Ionicons
+          testID='forward-button'
+          name='arrow-forward-circle'
+          size={20}
+        />
       </View>
     </TouchableOpacity>
   );
