@@ -50,7 +50,7 @@ describe('InboxChatPreview', () => {
     expect(screen.getByTestId('forward-button')).toBeTruthy();
   });
 
-  it('navigates to chat when preview component ispressed', () => {
+  it('should navigate to chat when preview component ispressed', () => {
     render(<InboxChatPreview user={mockUser} />);
 
     const chatPreview = screen.getByTestId('chat-preview-component');
