@@ -38,13 +38,15 @@ describe('ActionBar', () => {
     onUnbookmark: jest.fn(),
     onDelete: jest.fn(),
     onEdit: jest.fn(),
+    onShare: jest.fn(),
+    onSendInChat: jest.fn(),
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('renders all action buttons', () => {
+  it('should render all action buttons', () => {
     render(<ActionBar {...mockProps} />);
 
     expect(screen.getByTestId('like-button')).toBeTruthy();
@@ -52,7 +54,7 @@ describe('ActionBar', () => {
     expect(screen.getByTestId('more-options-button')).toBeTruthy();
   });
 
-  it('calls onLike when like button is pressed and post is not liked', async () => {
+  it('should call onLike when like button is pressed and post is not liked', async () => {
     render(<ActionBar {...mockProps} />);
 
     await act(async () => {
@@ -63,7 +65,7 @@ describe('ActionBar', () => {
     expect(mockProps.onUnlike).not.toHaveBeenCalled();
   });
 
-  it('calls onUnlike when like button is pressed and post is liked', async () => {
+  it('should call onUnlike when like button is pressed and post is liked', async () => {
     render(<ActionBar {...{ ...mockProps, liked: true }} />);
 
     await act(async () => {
@@ -74,7 +76,7 @@ describe('ActionBar', () => {
     expect(mockProps.onLike).not.toHaveBeenCalled();
   });
 
-  it('calls onBookmark when bookmark button is pressed and post is not bookmarked', async () => {
+  it('should call onBookmark when bookmark button is pressed and post is not bookmarked', async () => {
     render(<ActionBar {...mockProps} />);
 
     await act(async () => {
@@ -85,7 +87,7 @@ describe('ActionBar', () => {
     expect(mockProps.onUnbookmark).not.toHaveBeenCalled();
   });
 
-  it('calls onUnbookmark when bookmark button is pressed and post is bookmarked', async () => {
+  it('should call onUnbookmark when bookmark button is pressed and post is bookmarked', async () => {
     render(<ActionBar {...{ ...mockProps, bookmarked: true }} />);
 
     await act(async () => {
@@ -96,7 +98,7 @@ describe('ActionBar', () => {
     expect(mockProps.onBookmark).not.toHaveBeenCalled();
   });
 
-  it('opens modal when more options button is pressed', async () => {
+  it('should open options modal when more options button is pressed', async () => {
     render(<ActionBar {...mockProps} />);
 
     await act(async () => {
@@ -107,61 +109,51 @@ describe('ActionBar', () => {
     expect(screen.queryByTestId('modal')).toBeTruthy();
   });
 
-  it('shows delete option when author is current user', async () => {
-    render(<ActionBar {...{ ...mockProps, authorId: 'current-user-id' }} />);
-
-    await act(async () => {
-      fireEvent.press(screen.getByTestId('more-options-button'));
-    });
-
-    expect(screen.getByTestId('delete-button')).toBeTruthy();
-    expect(screen.queryByTestId('report-button')).toBeNull();
-    expect(screen.queryByTestId('block-button')).toBeNull();
-  });
-
-  it('shows block and report option when author is not current user', async () => {
+  it('should show block, report, share and send as message buttons after pressing options button when author is not current user', async () => {
     render(<ActionBar {...mockProps} />);
 
     await act(async () => {
       fireEvent.press(screen.getByTestId('more-options-button'));
     });
 
+    expect(screen.queryByTestId('edit-button')).toBeNull();
     expect(screen.queryByTestId('delete-button')).toBeNull();
     expect(screen.getByTestId('report-button')).toBeTruthy();
     expect(screen.getByTestId('block-button')).toBeTruthy();
   });
-  it('calls onDelete when delete option is pressed', async () => {
-    render(<ActionBar {...{ ...mockProps, authorId: 'current-user-id' }} />);
+
+  it('should call onShare when share button is pressed', async () => {
+    render(<ActionBar {...mockProps} />);
 
     await act(async () => {
       fireEvent.press(screen.getByTestId('more-options-button'));
     });
-    await act(async () => {
-      fireEvent.press(screen.getByText('Delete post'));
-    });
 
-    expect(mockProps.onDelete).toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId('share-button'));
+
+    expect(mockProps.onShare).toHaveBeenCalled();
   });
-  it('calls onEdit when edit post option is pressed', async () => {
-    render(<ActionBar {...{ ...mockProps, authorId: 'current-user-id' }} />);
+
+  it('should call onSendInChat when "Send as Message" button is pressed', async () => {
+    render(<ActionBar {...mockProps} />);
 
     await act(async () => {
       fireEvent.press(screen.getByTestId('more-options-button'));
     });
-    await act(async () => {
-      fireEvent.press(screen.getByText('Edit post'));
-    });
 
-    expect(mockProps.onEdit).toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId('send-button'));
+
+    expect(mockProps.onSendInChat).toHaveBeenCalled();
   });
-  it('calls endpoint to block user when block option is pressed', async () => {
+
+  it('should call UserUserEndpoint to block user when block button is pressed', async () => {
     render(<ActionBar {...mockProps} />);
 
     await act(async () => {
       fireEvent.press(screen.getByTestId('more-options-button'));
     });
     await act(async () => {
-      fireEvent.press(screen.getByText('Block User'));
+      fireEvent.press(screen.getByTestId('block-button'));
     });
 
     expect(mockBlockUser).toHaveBeenCalledTimes(1);
@@ -173,7 +165,65 @@ describe('ActionBar', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/(tabs)');
   });
 
-  it('closes modal when cancel is pressed', async () => {
+  it('should call UserUserEndpoint to block user when report button is pressed', async () => {
+    render(<ActionBar {...mockProps} />);
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('more-options-button'));
+    });
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('report-button'));
+    });
+
+    expect(mockBlockUser).toHaveBeenCalledTimes(1);
+    expect(mockBlockUser).toHaveBeenCalledWith(
+      'current-user-id',
+      mockProps.authorId
+    );
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith('/(tabs)');
+  });
+
+  it('should show send as message, edit and delete buttons after pressing the options button when author is current user', async () => {
+    render(<ActionBar {...{ ...mockProps, authorId: 'current-user-id' }} />);
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('more-options-button'));
+    });
+
+    expect(screen.getByTestId('edit-button')).toBeTruthy();
+    expect(screen.getByTestId('delete-button')).toBeTruthy();
+    expect(screen.queryByTestId('report-button')).toBeNull();
+    expect(screen.queryByTestId('block-button')).toBeNull();
+  });
+
+  it('should call onDelete when delete button is pressed', async () => {
+    render(<ActionBar {...{ ...mockProps, authorId: 'current-user-id' }} />);
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('more-options-button'));
+    });
+    await act(async () => {
+      fireEvent.press(screen.getByText('Delete post'));
+    });
+
+    expect(mockProps.onDelete).toHaveBeenCalled();
+  });
+
+  it('should call onEdit when edit post button is pressed', async () => {
+    render(<ActionBar {...{ ...mockProps, authorId: 'current-user-id' }} />);
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('more-options-button'));
+    });
+    await act(async () => {
+      fireEvent.press(screen.getByText('Edit post'));
+    });
+
+    expect(mockProps.onEdit).toHaveBeenCalled();
+  });
+
+  it('should close modal when cancel is pressed', async () => {
     render(<ActionBar {...mockProps} />);
 
     await act(async () => {
