@@ -67,6 +67,19 @@ describe('UserSearchResult component', () => {
     expect(screen.getByTestId('follow-button')).toBeTruthy();
     expect(screen.getByTestId('avatar')).toBeTruthy();
   });
+  it("does not show follow button if result is logged-in user's own profile", async () => {
+    render(<UserSearchResult {...{ ...mockProps, id: 'test-user-id' }} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('search-result')).toBeTruthy();
+    });
+
+    expect(screen.getByTestId('username')).toHaveTextContent(
+      mockProps.username
+    );
+    expect(screen.queryByTestId('follow-button')).toBeNull();
+    expect(screen.getByTestId('avatar')).toBeTruthy();
+  });
 
   it('navigates to /users route when search result is pressed and its another users profile', async () => {
     render(<UserSearchResult {...mockProps} />);
