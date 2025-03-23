@@ -209,12 +209,19 @@ class SupabasePostEndpoint {
     userId: string
   ): Promise<TGetHomePagePost[] | null> {
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+
+      if (!sessionData?.session?.access_token) {
+        console.error('No active session found');
+        return [];
+      }
       const response = await fetch(
         `${PLACIDATE_SERVER_BASE_URL}/api/recommendations/${userId}`,
         {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionData.session.access_token}`,
           },
         }
       );
