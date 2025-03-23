@@ -5,7 +5,7 @@ import { Text, TouchableOpacity, View } from 'react-native';
 
 interface IHeaderProps {
   username: string;
-  userId?: string;
+  userId: string;
 }
 
 export default function Header({ username, userId }: IHeaderProps) {
@@ -21,9 +21,7 @@ export default function Header({ username, userId }: IHeaderProps) {
       <View>
         <TouchableOpacity
           testID='username'
-          onPress={
-            userId ? () => router.push(`/user?user_id=${userId}`) : () => {}
-          }
+          onPress={() => router.push(`/user?user_id=${userId}`)}
         >
           <Text className='text-black font-bold text-2xl'>{username}</Text>
         </TouchableOpacity>
