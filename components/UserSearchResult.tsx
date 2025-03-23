@@ -102,6 +102,7 @@ export default function UserSearchResult({
           }`}
           onPress={handleFollow}
           disabled={loading}
+          testID='follow-button'
         >
           <Text className='text-center font-semibold'>
             {isFollowing ? 'Unfollow' : 'Follow'}

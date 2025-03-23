@@ -5,10 +5,14 @@ import {
   TPost,
 } from '@/utils/types';
 import { supabase } from './client';
-import { PLACIDATE_SERVER_BASE_URL } from './UserEndpoint';
+
+const PLACIDATE_SERVER_BASE_URL =
+  process.env.NODE_ENV == 'production'
+    ? String(process.env.EXPO_PUBLIC_SERVER_BASE_URL)
+    : 'http://10.0.2.2:8000';
 
 class SupabasePostEndpoint {
-  async getCommentsAndAuthors(
+  async getComments(
     currentlyAuthenticatedUser: string,
     post_id: string
   ): Promise<TCommentsAndAuthors[] | null> {
@@ -80,7 +84,7 @@ class SupabasePostEndpoint {
             currentlyAuthenticatedUser === postAuthorId,
         }));
     } catch (error) {
-      console.error('Error in getCommentsAndAuthors:', error);
+      console.error('Error in getComments:', error);
       return null;
     }
   }
@@ -205,17 +209,25 @@ class SupabasePostEndpoint {
     userId: string
   ): Promise<TGetHomePagePost[] | null> {
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+
+      if (!sessionData?.session?.access_token) {
+        console.error('No active session found');
+        return [];
+      }
       const response = await fetch(
         `${PLACIDATE_SERVER_BASE_URL}/api/recommendations/${userId}`,
         {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionData.session.access_token}`,
           },
         }
       );
 
       if (!response.ok) {
+        // console.log(response);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 

@@ -17,6 +17,7 @@ interface IActionBar {
   onDelete: () => Promise<void>;
   onEdit: () => Promise<void>;
   onShare: () => Promise<void>;
+  onSendInChat: () => void;
 }
 
 export default function ActionBar({
@@ -30,6 +31,7 @@ export default function ActionBar({
   onDelete,
   onEdit,
   onShare,
+  onSendInChat,
 }: IActionBar) {
   const [modalVisible, setModalVisible] = useState(false);
   const { profile } = useAuth();
@@ -85,6 +87,22 @@ export default function ActionBar({
         >
           <View className='mt-auto bg-white rounded-t-3xl'>
             <View className='p-4 gap-4'>
+              <TouchableOpacity
+                testID='send-button'
+                onPress={onSendInChat}
+                className='flex-row items-center gap-2 p-2'
+              >
+                <Ionicons name='send-outline' size={24} color='black' />
+                <Text className='text-lg'>Send as A Message</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                testID='share-button'
+                className='flex-row items-center gap-2 p-2'
+                onPress={onShare}
+              >
+                <Ionicons name='share-social-outline' size={24} color='black' />
+                <Text className='text-lg'>Share Post</Text>
+              </TouchableOpacity>
               {authorId == profile?.id ? (
                 <>
                   <TouchableOpacity
@@ -109,7 +127,7 @@ export default function ActionBar({
                   <TouchableOpacity
                     testID='report-button'
                     className='flex-row items-center gap-2 p-2'
-                    onPress={() => handleBlock}
+                    onPress={handleBlock}
                   >
                     <Ionicons name='flag-outline' size={24} color='black' />
                     <Text className='text-lg'>Report Post</Text>
@@ -121,18 +139,6 @@ export default function ActionBar({
                   >
                     <Ionicons name='ban-outline' size={24} color='black' />
                     <Text className='text-lg'>Block User</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    testID='block-button'
-                    className='flex-row items-center gap-2 p-2'
-                    onPress={onShare}
-                  >
-                    <Ionicons
-                      name='share-social-outline'
-                      size={24}
-                      color='black'
-                    />
-                    <Text className='text-lg'>Share Post</Text>
                   </TouchableOpacity>
                 </>
               )}

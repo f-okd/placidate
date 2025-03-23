@@ -30,6 +30,7 @@ const mockProps = {
   followingCount: 45,
   onFollow: mockOnFollow,
   onUnfollow: mockOnUnfollow,
+  canViewContent: true,
 };
 
 describe('ProfileHeader', () => {
@@ -50,6 +51,7 @@ describe('ProfileHeader', () => {
     expect(screen.getByTestId('message-button')).toHaveTextContent('Message');
     expect(screen.getByTestId('avatar')).toBeTruthy();
   });
+
   it('successfully renders component with correct information (set avatar)', () => {
     const mockProps = {
       profile: {
@@ -63,6 +65,7 @@ describe('ProfileHeader', () => {
       followingCount: 45,
       onFollow: mockOnFollow,
       onUnfollow: mockOnUnfollow,
+      canViewContent: true,
     };
     render(<ProfileHeader {...mockProps} />);
 
@@ -76,30 +79,37 @@ describe('ProfileHeader', () => {
     expect(screen.getByTestId('message-button')).toHaveTextContent('Message');
     expect(screen.getByTestId('avatar')).toBeTruthy();
   });
+
   it('shows option to follow user if not already following user', () => {
     render(<ProfileHeader {...{ ...mockProps, isFollowing: false }} />);
 
     expect(screen.getByTestId('follow-button')).toHaveTextContent('Follow');
   });
+
   it('does not show the option to message user if not following user', () => {
     render(<ProfileHeader {...{ ...mockProps, isFollowing: false }} />);
 
     expect(screen.queryByTestId('message-button')).toBeNull();
   });
+
   it('does not show the option to message user if following user but user does not follow you', () => {
     render(<ProfileHeader {...{ ...mockProps, isFollowedBy: false }} />);
 
     expect(screen.queryByTestId('message-button')).toBeNull();
   });
-  it('should navigate to inbox if user clicks to message other user option to follow user if not already following user', () => {
+
+  it('should navigate to chat if user presses the message button', () => {
     render(<ProfileHeader {...mockProps} />);
 
     const messageButton = screen.getByTestId('message-button');
     fireEvent.press(messageButton);
-    expect(mockNavigate).toHaveBeenCalledWith('/inbox');
+    expect(mockNavigate).toHaveBeenCalledWith(
+      `/chat?user_id=${mockOtherUser.id}`
+    );
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
-  it('should navigate to own follower list if user presses followers ', () => {
+
+  it('should navigate to the user’s follower list after pressing follower count or label if mutuals ', () => {
     render(<ProfileHeader {...mockProps} />);
 
     const followersButton = screen.getByTestId('followers-section');
@@ -109,7 +119,8 @@ describe('ProfileHeader', () => {
     );
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
-  it('should navigate to own following list if user presses following ', () => {
+
+  it('should navigate to the user’s following list after pressing following count or label if mutuals', () => {
     render(<ProfileHeader {...mockProps} />);
 
     const followingButton = screen.getByTestId('following-section');
@@ -119,6 +130,23 @@ describe('ProfileHeader', () => {
     );
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
+
+  it("should not navigate to user's follower list if not mutuals ", () => {
+    render(<ProfileHeader {...{ ...mockProps, canViewContent: false }} />);
+
+    const followersButton = screen.getByTestId('followers-section');
+    fireEvent.press(followersButton);
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it("should not navigate to user's following list if not mutuals", () => {
+    render(<ProfileHeader {...{ ...mockProps, canViewContent: false }} />);
+
+    const followingButton = screen.getByTestId('following-section');
+    fireEvent.press(followingButton);
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
   it('should show "Read more" button when bio exceeds 25 words', () => {
     const longBioProps = {
       ...mockProps,

@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  StyleSheet,
   Keyboard,
 } from 'react-native';
 import React, { useCallback, useState, useRef, useEffect } from 'react';
@@ -16,15 +15,24 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { MessageRecord, TProfile } from '@/utils/types';
 import SupabaseUserUserInteractionEndpoint from '@/lib/supabase/UserUserInteractionEndpoint';
 import SupabaseUserEndpoint from '@/lib/supabase/UserEndpoint';
+import SupabasePostEndpoint from '@/lib/supabase/PostEndpoint';
 import { showToast } from '@/utils/helpers';
-import Header from '@/components/TopLevelHeader';
+import Header from '@/components/ChatTopLevelHeader';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase/client';
-import { formatDistanceToNow } from 'date-fns';
+import Message, { MessageData } from '@/components/Message';
+
+// Regular expression to match post links in format {{post:POST_ID}}
+const POST_LINK_REGEX = /\{\{post:([a-zA-Z0-9-]+)\}\}/;
+
+// Enhanced MessageRecord type with post data
+type EnhancedMessageRecord = MessageRecord & {
+  postData?: any;
+};
 
 export default function Chat() {
   const [recipient, setRecipient] = useState<TProfile | null>(null);
-  const [messages, setMessages] = useState<MessageRecord[]>([]);
+  const [messages, setMessages] = useState<EnhancedMessageRecord[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [text, setText] = useState<string>('');
   const [sending, setSending] = useState<boolean>(false);
@@ -39,13 +47,61 @@ export default function Chat() {
   const router = useRouter();
   const userUserEndpoint = new SupabaseUserUserInteractionEndpoint();
   const userEndpoint = new SupabaseUserEndpoint();
+  const postEndpoint = new SupabasePostEndpoint();
 
   const fetchAndLoadChat = async (): Promise<void> => {
+    // Get chat messages
     const chatMessages = await userUserEndpoint.getChat(
       activeProfile.id,
       user_id
     );
-    setMessages(chatMessages);
+
+    // Enhance messages with post data if needed
+    const enhancedMessages = await enhanceMessagesWithPostData(chatMessages);
+    setMessages(enhancedMessages);
+  };
+
+  // Function to add post data to messages
+  const enhanceMessagesWithPostData = async (
+    messages: MessageRecord[]
+  ): Promise<EnhancedMessageRecord[]> => {
+    const postIds = new Set<string>();
+    const postData: Record<string, any> = {};
+    const messagePostMap: Record<string, string> = {}; // Maps message ID to post ID
+
+    // Collect all post IDs and track which messages contain which posts
+    messages.forEach((message) => {
+      const match = message.body.match(POST_LINK_REGEX);
+      if (match && match[1]) {
+        const postId = match[1];
+        postIds.add(postId);
+        messagePostMap[message.id] = postId;
+      }
+    });
+
+    // Fetch post data for all IDs
+    for (const postId of postIds) {
+      try {
+        const postDetails = await postEndpoint.getPostDetails(postId);
+        if (postDetails) {
+          postData[postId] = postDetails;
+        }
+      } catch (error) {
+        console.error(`Error fetching post ${postId}:`, error);
+      }
+    }
+
+    // Attach post data to messages using our map
+    return messages.map((message) => {
+      const postId = messagePostMap[message.id];
+      if (postId && postData[postId]) {
+        return {
+          ...message,
+          postData: postData[postId],
+        };
+      }
+      return message;
+    });
   };
 
   const fetchAndSetUser = async (): Promise<void> => {
@@ -110,9 +166,29 @@ export default function Chat() {
           table: 'messages',
           filter: `receiver_id=eq.${activeProfile.id}`,
         },
-        (payload) => {
+        async (payload) => {
           const newMessage = payload.new as MessageRecord;
-          setMessages((prev) => [...prev, newMessage]);
+
+          // Check if this is a post share message
+          let enhancedMessage = newMessage as EnhancedMessageRecord;
+
+          const match = newMessage.body.match(POST_LINK_REGEX);
+
+          if (match && match[1]) {
+            try {
+              const postDetails = await postEndpoint.getPostDetails(match[1]);
+              if (postDetails) {
+                enhancedMessage = {
+                  ...newMessage,
+                  postData: postDetails,
+                };
+              }
+            } catch (error) {
+              console.error(`Error fetching post data:`, error);
+            }
+          }
+
+          setMessages((prev) => [...prev, enhancedMessage]);
           scrollToBottom();
         }
       )
@@ -154,22 +230,9 @@ export default function Chat() {
     }
   }, [messages.length]);
 
-  const renderMessage = ({ item }: { item: MessageRecord }) => {
-    const isMyMessage = item.sender_id === activeProfile.id;
-
-    return (
-      <View
-        style={[
-          styles.messageBubble,
-          isMyMessage ? styles.myMessage : styles.theirMessage,
-        ]}
-      >
-        <Text style={styles.messageText}>{item.body}</Text>
-        <Text style={styles.timestampText}>
-          {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
-        </Text>
-      </View>
-    );
+  // Navigate to a post
+  const navigateToPost = (postId: string) => {
+    router.push(`/post?post_id=${postId}`);
   };
 
   if (loading) {
@@ -188,15 +251,20 @@ export default function Chat() {
     >
       <View className='flex-1'>
         <Header
-          title={recipient?.username || 'Chat'}
-          showBackIcon={true}
-          showNotificationIcon={false}
+          username={recipient?.username || 'Chat'}
+          userId={recipient?.id as string}
         />
 
         <FlatList
           ref={flatListRef}
           data={messages}
-          renderItem={renderMessage}
+          renderItem={({ item }) => (
+            <Message
+              message={item as MessageData}
+              isMyMessage={item.sender_id === activeProfile.id}
+              navigateToPost={navigateToPost}
+            />
+          )}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{
             paddingHorizontal: 10,
@@ -231,31 +299,3 @@ export default function Chat() {
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  messageBubble: {
-    maxWidth: '80%',
-    padding: 10,
-    borderRadius: 15,
-    marginVertical: 5,
-  },
-  myMessage: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#DCF8C6',
-    borderBottomRightRadius: 0,
-  },
-  theirMessage: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#F0F0F0',
-    borderBottomLeftRadius: 0,
-  },
-  messageText: {
-    fontSize: 16,
-  },
-  timestampText: {
-    fontSize: 10,
-    color: '#999',
-    marginTop: 5,
-    alignSelf: 'flex-end',
-  },
-});

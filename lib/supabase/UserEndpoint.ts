@@ -4,7 +4,10 @@ import { supabase } from './client';
 import { RecentFollowerRecord, TProfile } from '@/utils/types';
 import { showToast } from '@/utils/helpers';
 
-export const PLACIDATE_SERVER_BASE_URL = 'http://10.0.2.2:8000';
+const PLACIDATE_SERVER_BASE_URL =
+  process.env.NODE_ENV == 'production'
+    ? String(process.env.EXPO_PUBLIC_SERVER_BASE_URL)
+    : 'http://10.0.2.2:8000';
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
 
 class SupabaseUserEndpoint {
@@ -147,12 +150,20 @@ class SupabaseUserEndpoint {
 
   async deleteAccount(userId: string): Promise<boolean> {
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+
+      if (!sessionData?.session?.access_token) {
+        console.error('No active session found');
+        return false;
+      }
+
       const response = await fetch(
-        `${PLACIDATE_SERVER_BASE_URL}/api/users/${userId}/delete`,
+        `${PLACIDATE_SERVER_BASE_URL}/api/users/${userId}`,
         {
-          method: 'POST',
+          method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionData.session.access_token}`,
           },
         }
       );

@@ -6,16 +6,19 @@ import { useAuth } from '@/providers/AuthProvider';
 import { showToast } from '@/utils/helpers';
 import { supabase } from '@/lib/supabase/client';
 import SupabasePostEndpoint from '@/lib/supabase/PostEndpoint';
+import SupabaseUserEndpoint from '@/lib/supabase/UserEndpoint';
 import SupabaseUserPostInteractionEndpoint from '@/lib/supabase/UserPostInteractionEndpoint';
 import { TCommentsAndAuthors, TGetHomePagePost, TProfile } from '@/utils/types';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Share,
   Text,
@@ -31,6 +34,8 @@ export default function ViewPostScreen() {
   const [loading, setLoading] = useState<boolean>(true);
   const [liked, setLiked] = useState<boolean>(false);
   const [bookmarked, setBookmarked] = useState<boolean>(false);
+  const [showChatModal, setShowChatModal] = useState<boolean>(false);
+  const [friends, setFriends] = useState<TProfile[]>([]);
 
   const router = useRouter();
   const params = useLocalSearchParams();
@@ -38,17 +43,26 @@ export default function ViewPostScreen() {
 
   const postEndpoint = new SupabasePostEndpoint();
   const userPostEndpoint = new SupabaseUserPostInteractionEndpoint();
+  const userEndpoint = new SupabaseUserEndpoint();
 
   const { profile: uncastedProfile } = useAuth();
   const activeProfile = uncastedProfile as TProfile;
 
-  useEffect(() => {
-    setLoading(true);
-    getPost();
-    loadComments();
-    setLikedAndBookmarkedStatus();
-    setLoading(false);
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      setLoading(true);
+      getPost();
+      loadComments();
+      setLikedAndBookmarkedStatus();
+      loadFriends();
+      setLoading(false);
+    }, [])
+  );
+
+  const loadFriends = async (): Promise<void> => {
+    const friends = await userEndpoint.getFriends(activeProfile.id);
+    setFriends(friends);
+  };
 
   const getPost = async (): Promise<void> => {
     const { data, error } = await supabase
@@ -77,7 +91,7 @@ export default function ViewPostScreen() {
   };
 
   const loadComments = async (): Promise<void> => {
-    const comments = await postEndpoint.getCommentsAndAuthors(
+    const comments = await postEndpoint.getComments(
       activeProfile.id,
       String(post_id)
     );
@@ -154,6 +168,38 @@ export default function ViewPostScreen() {
     router.push(`/editPost?post_id=${post_id}`);
   };
 
+  const handleSendToChat = (): void => {
+    if (friends.length === 0) {
+      return showToast("You don't have any friends to share with");
+    }
+    setShowChatModal(true);
+    return;
+  };
+
+  const sendPostToChat = async (recipientId: string): Promise<void> => {
+    try {
+      if (!post) return;
+
+      const postLink = `{{post:${post_id}}}`;
+
+      const sent = await supabase.from('messages').insert({
+        sender_id: activeProfile.id,
+        receiver_id: recipientId,
+        body: postLink,
+      });
+
+      if (sent.error) {
+        throw sent.error;
+      }
+
+      setShowChatModal(false);
+      showToast('Post shared successfully!');
+    } catch (error) {
+      console.error('Error sending post to chat:', error);
+      showToast('Failed to share post');
+    }
+  };
+
   if (loading) {
     return (
       <View className='flex-1 bg-white items-center justify-center'>
@@ -175,6 +221,7 @@ export default function ViewPostScreen() {
       </View>
     );
   }
+
   const handleShare = async (): Promise<void> => {
     try {
       await Share.share({
@@ -252,6 +299,7 @@ export default function ViewPostScreen() {
           onDelete={handleDelete}
           onEdit={handleEdit}
           onShare={handleShare}
+          onSendInChat={handleSendToChat}
         />
       </View>
 
@@ -300,6 +348,58 @@ export default function ViewPostScreen() {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Chat Selection Modal */}
+        <Modal
+          visible={showChatModal}
+          transparent={true}
+          animationType='slide'
+          onRequestClose={() => setShowChatModal(false)}
+        >
+          <View className='flex-1 justify-center items-center bg-black/50'>
+            <View className='bg-white p-4 rounded-lg w-5/6 max-h-96'>
+              <Text className='text-xl font-bold mb-4'>Share with</Text>
+
+              <FlatList
+                data={friends}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    className='flex-row items-center p-3 border-b border-gray-200'
+                    onPress={() => sendPostToChat(item.id)}
+                  >
+                    <Image
+                      source={
+                        item.avatar_url
+                          ? { uri: item.avatar_url }
+                          : require('@/assets/images/default-avatar.jpg')
+                      }
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 20,
+                        marginRight: 10,
+                      }}
+                    />
+                    <Text className='text-lg'>{item.username}</Text>
+                  </TouchableOpacity>
+                )}
+                ListEmptyComponent={() => (
+                  <Text className='p-4 text-center'>
+                    No friends to share with
+                  </Text>
+                )}
+              />
+
+              <TouchableOpacity
+                className='bg-gray-200 p-3 rounded-lg mt-4'
+                onPress={() => setShowChatModal(false)}
+              >
+                <Text className='text-center font-semibold'>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </View>
     </KeyboardAvoidingView>
   );
