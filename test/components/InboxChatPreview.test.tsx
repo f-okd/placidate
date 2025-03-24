@@ -22,6 +22,7 @@ describe('InboxChatPreview', () => {
     bio: 'Test bio',
     is_private: false,
     updated_at: null,
+    bookmark_visibility: 'private',
   };
 
   it('should render correctly', () => {

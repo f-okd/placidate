@@ -9,6 +9,7 @@ const mockUser: TProfile = {
   is_private: null,
   updated_at: null,
   username: 'commentTest-user',
+  bookmark_visibility: 'private',
 };
 
 const mockDelete = jest.fn();
@@ -25,7 +26,6 @@ const mockComment: TCommentsAndAuthors = {
 
 const mockNavigate = jest.fn();
 
-// Mock the router
 jest.mock('expo-router', () => ({
   useRouter: () => ({
     push: mockNavigate,

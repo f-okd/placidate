@@ -16,6 +16,7 @@ const mockOtherUser: TProfile = {
   is_private: null,
   updated_at: null,
   username: 'headerTest-otherUser',
+  bookmark_visibility: 'private',
 };
 
 const mockOnFollow = jest.fn();
@@ -197,5 +198,113 @@ describe('ProfileHeader', () => {
     fireEvent.press(unfollowButton);
 
     expect(mockOnUnfollow).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not show bookmarks button when bookmark visibility is private', () => {
+    const privateBookmarksProps = {
+      ...mockProps,
+      profile: {
+        ...mockOtherUser,
+        bookmark_visibility: 'private',
+      },
+    };
+    render(<ProfileHeader {...privateBookmarksProps} />);
+
+    expect(screen.queryByTestId('bookmarks-button')).toBeNull();
+  });
+
+  it('shows bookmarks button when bookmark visibility is public', () => {
+    const publicBookmarksProps = {
+      ...mockProps,
+      profile: {
+        ...mockOtherUser,
+        bookmark_visibility: 'public',
+      },
+    };
+    render(<ProfileHeader {...publicBookmarksProps} />);
+
+    expect(screen.getByTestId('bookmarks-button')).toBeTruthy();
+    expect(screen.getByTestId('bookmarks-button')).toHaveTextContent(
+      'View Bookmarks'
+    );
+  });
+
+  it('navigates to bookmarks page when view bookmarks button is pressed', () => {
+    const publicBookmarksProps = {
+      ...mockProps,
+      profile: {
+        ...mockOtherUser,
+        bookmark_visibility: 'public',
+      },
+    };
+    render(<ProfileHeader {...publicBookmarksProps} />);
+
+    const bookmarksButton = screen.getByTestId('bookmarks-button');
+    fireEvent.press(bookmarksButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      `/bookmarks?user_id=${mockOtherUser.id}&username=${mockOtherUser.username}`
+    );
+  });
+
+  it('shows bookmarks button when visibility is set to mutuals and users follow each other', () => {
+    const mutualBookmarksProps = {
+      ...mockProps,
+      profile: {
+        ...mockOtherUser,
+        bookmark_visibility: 'mutuals',
+        is_private: false,
+      },
+      isFollowing: true,
+      isFollowedBy: true,
+    };
+    render(<ProfileHeader {...mutualBookmarksProps} />);
+
+    expect(screen.getByTestId('bookmarks-button')).toBeTruthy();
+  });
+
+  it('does not show bookmarks button when visibility is set to mutuals but users do not follow each other', () => {
+    const notMutualBookmarksProps = {
+      ...mockProps,
+      profile: {
+        ...mockOtherUser,
+        bookmark_visibility: 'mutuals',
+      },
+      isFollowing: true,
+      isFollowedBy: false,
+    };
+    render(<ProfileHeader {...notMutualBookmarksProps} />);
+
+    expect(screen.queryByTestId('bookmarks-button')).toBeNull();
+  });
+
+  it('shows bookmarks button for private profile with mutuals visibility when users have mutual relationship', () => {
+    const privateProfileMutualsProps = {
+      ...mockProps,
+      profile: {
+        ...mockOtherUser,
+        bookmark_visibility: 'mutuals',
+        is_private: true,
+      },
+      canViewContent: true, // Profile is accessible because users are mutuals
+    };
+    render(<ProfileHeader {...privateProfileMutualsProps} />);
+
+    expect(screen.getByTestId('bookmarks-button')).toBeTruthy();
+  });
+
+  it('does not show bookmarks button for private profile when users do not have mutual relationship', () => {
+    const privateProfileMutualsProps = {
+      ...mockProps,
+      profile: {
+        ...mockOtherUser,
+        bookmark_visibility: 'mutuals',
+        is_private: true,
+      },
+      canViewContent: false, // Profile is not accessible because users aren't mutuals
+    };
+    render(<ProfileHeader {...privateProfileMutualsProps} />);
+
+    expect(screen.queryByTestId('bookmarks-button')).toBeNull();
   });
 });

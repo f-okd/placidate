@@ -22,8 +22,21 @@ export default function Settings() {
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [selectedPrivacyOptionId, setSelectedPrivacyOptionId] =
+  const [selectedPostPrivacyOptionId, setSelectedPostPrivacyOptionId] =
     useState<string>(activeProfile.is_private ? '2' : '1');
+  const [selectedBookmarkPrivacyOptionId, setSelectedBookmarkPrivacyOptionId] =
+    useState<string>(() => {
+      switch (activeProfile.bookmark_visibility) {
+        case 'public':
+          return '1';
+        case 'mutuals':
+          return '2';
+        case 'private':
+          return '3';
+        default:
+          return '2';
+      }
+    });
   const [loading, setLoading] = useState(false);
   const { refreshProfile } = useAuth();
 
@@ -96,8 +109,8 @@ export default function Settings() {
     );
   };
 
-  const handleTogglePrivacy = async (selectedId: string) => {
-    setSelectedPrivacyOptionId(selectedId);
+  const togglePostPrivacy = async (selectedId: string) => {
+    setSelectedPostPrivacyOptionId(selectedId);
     const success = await userEndpoint.toggleAccountPrivacy(
       activeProfile.id,
       selectedId
@@ -109,7 +122,40 @@ export default function Settings() {
     showToast(`Profile is now ${selectedId == '1' ? 'public' : 'private'}`);
   };
 
-  const radioButtons: RadioButtonProps[] = useMemo(
+  const toggleBookmarkPrivacy = async (selectedId: string) => {
+    setSelectedBookmarkPrivacyOptionId(selectedId);
+
+    let visibilityText: string;
+    switch (selectedId) {
+      case '1':
+        visibilityText = 'public';
+        break;
+      case '2':
+        visibilityText = 'mutuals';
+        break;
+      case '3':
+        visibilityText = 'private';
+        break;
+      default:
+        visibilityText = 'private';
+    }
+
+    const success = await userEndpoint.toggleBookmarkPrivacy(
+      activeProfile.id,
+      visibilityText
+    );
+
+    if (!success) {
+      return;
+    }
+
+    refreshProfile(true);
+
+    // Update toast message to show the selected visibility
+    showToast(`Bookmarks are now ${visibilityText}`);
+  };
+
+  const postRadioButtons: RadioButtonProps[] = useMemo(
     () => [
       {
         id: '1',
@@ -120,6 +166,29 @@ export default function Settings() {
       {
         id: '2',
         label: 'My mutual followers',
+        value: 'private',
+        containerStyle: { alignItems: 'flex-start', alignSelf: 'flex-start' },
+      },
+    ],
+    []
+  );
+  const bookmarkRadioButtons: RadioButtonProps[] = useMemo(
+    () => [
+      {
+        id: '1',
+        label: 'Anyone',
+        value: 'public',
+        containerStyle: { alignItems: 'flex-start', alignSelf: 'flex-start' },
+      },
+      {
+        id: '2',
+        label: 'My mutual followers',
+        value: 'mutuals',
+        containerStyle: { alignItems: 'flex-start', alignSelf: 'flex-start' },
+      },
+      {
+        id: '3',
+        label: 'Nobody',
         value: 'private',
         containerStyle: { alignItems: 'flex-start', alignSelf: 'flex-start' },
       },
@@ -170,13 +239,22 @@ export default function Settings() {
         {/*Manage Post visibility */}
         <Text className='text-lg mt-4'>Who can view your posts?</Text>
         <RadioGroup
-          radioButtons={radioButtons}
-          onPress={handleTogglePrivacy}
-          selectedId={selectedPrivacyOptionId}
+          radioButtons={postRadioButtons}
+          onPress={togglePostPrivacy}
+          selectedId={selectedPostPrivacyOptionId}
           containerStyle={{ alignItems: 'flex-start', width: '100%' }}
         />
 
-        <Text className='text-2xl font-bold mt-10 mb-6'>Account Settings</Text>
+        {/*Manage Bookmarks visibility */}
+        <Text className='text-lg mt-4'>Who can view your bookmarks?</Text>
+        <RadioGroup
+          radioButtons={bookmarkRadioButtons}
+          onPress={toggleBookmarkPrivacy}
+          selectedId={selectedBookmarkPrivacyOptionId}
+          containerStyle={{ alignItems: 'flex-start', width: '100%' }}
+        />
+
+        <Text className='text-2xl font-bold mt-8 mb-6'>Account Settings</Text>
         {/* Password Section */}
         <View className='mb-6'>
           <Text className='text-gray-600 mb-2'>Change Password</Text>
@@ -206,7 +284,7 @@ export default function Settings() {
         </View>
 
         {/* Delete Account Section */}
-        <View className='mt-8'>
+        <View className='mt-5'>
           <TouchableOpacity
             className='bg-red-500 rounded-lg p-3'
             onPress={handleDeleteAccount}
@@ -231,7 +309,7 @@ export default function Settings() {
 
         {/* Back Button */}
         <TouchableOpacity
-          className='mt-4 p-3'
+          className='mt-1'
           onPress={() => router.back()}
           disabled={loading}
         >

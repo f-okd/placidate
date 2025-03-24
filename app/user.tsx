@@ -84,6 +84,7 @@ export default function OtherUsersProfileScreen() {
             activeProfile.id,
             String(user_id)
           );
+          // console.log(canView);
           setCanViewContent(canView);
 
           // 3.) Fetch and set follow and post counts
