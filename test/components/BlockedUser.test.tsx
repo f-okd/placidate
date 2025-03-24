@@ -9,6 +9,7 @@ const mockUser: TProfile = {
   is_private: null,
   updated_at: null,
   username: 'test-user',
+  bookmark_visibility: 'private',
 };
 
 describe('BlockedUser', () => {

@@ -27,6 +27,7 @@ const mockOtherUser: TProfile = {
   is_private: null,
   updated_at: null,
   username: 'headerTest-otherUser',
+  bookmark_visibility: 'private',
 };
 
 const mockCurrentlyLoggedInUser: TProfile = {
@@ -36,6 +37,7 @@ const mockCurrentlyLoggedInUser: TProfile = {
   is_private: null,
   updated_at: null,
   username: 'headerTest-user',
+  bookmark_visibility: 'private',
 };
 
 describe('comment', () => {

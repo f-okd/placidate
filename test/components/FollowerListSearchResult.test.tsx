@@ -16,6 +16,7 @@ const mockProfile: TProfile = {
   avatar_url: null,
   is_private: null,
   updated_at: null,
+  bookmark_visibility: 'private',
 };
 const mockProps = {
   profile: mockProfile,

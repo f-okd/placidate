@@ -17,6 +17,7 @@ const mockUser: TProfile = {
   bio: null,
   is_private: false,
   updated_at: null,
+  bookmark_visibility: 'private',
 };
 
 const mockPost = {

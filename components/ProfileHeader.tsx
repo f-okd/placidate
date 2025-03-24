@@ -119,12 +119,34 @@ export default function ProfileHeader({
               </Text>
             </TouchableOpacity>
             {isFollowing && isFollowedBy && (
+              <>
+                <TouchableOpacity
+                  testID='message-button'
+                  className='bg-gray-800 w-[22%] p-2 rounded-lg'
+                  onPress={() => router.push(`/chat?user_id=${profile.id}`)}
+                >
+                  <Text className='text-white text-center'>Message</Text>
+                </TouchableOpacity>
+              </>
+            )}
+            {/* Show bookmarks button if:
+              1. Bookmarks are public, OR
+              2. Bookmarks are set to mutuals AND there's a mutual follow relationship */}
+            {(profile.bookmark_visibility === 'public' ||
+              (profile.bookmark_visibility === 'mutuals' &&
+                (profile.is_private
+                  ? canViewContent
+                  : isFollowing && isFollowedBy))) && (
               <TouchableOpacity
-                testID='message-button'
-                className='bg-gray-800 w-[22%] p-2 rounded-lg'
-                onPress={() => router.push(`/chat?user_id=${profile.id}`)}
+                testID='bookmarks-button'
+                className='bg-gray-800 w-[35%] p-2 rounded-lg'
+                onPress={() =>
+                  router.push(
+                    `/bookmarks?user_id=${profile.id}&username=${profile.username}`
+                  )
+                }
               >
-                <Text className='text-white text-center'>Message</Text>
+                <Text className='text-white text-center'>View Bookmarks</Text>
               </TouchableOpacity>
             )}
           </View>

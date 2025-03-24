@@ -369,7 +369,6 @@ class SupabaseUserEndpoint {
   ): Promise<boolean> {
     // Self can always view own content
     if (viewerId === targetUserId) return true;
-
     try {
       // Get target user's privacy setting
       const { data: targetProfile, error: profileError } = await supabase
@@ -382,7 +381,6 @@ class SupabaseUserEndpoint {
         console.error('Error checking user privacy:', profileError);
         return false;
       }
-
       // If profile is public, anyone can view
       if (!targetProfile.is_private) return true;
 
@@ -535,6 +533,24 @@ class SupabaseUserEndpoint {
     const { error } = await supabase
       .from('profiles')
       .update({ is_private: selectedId == '1' ? false : true })
+      .eq('id', userId);
+
+    if (error) {
+      console.error('Error updating privacy settings:', error);
+      showToast('Failed to update privacy settings');
+      return false;
+    }
+
+    return true;
+  }
+
+  async toggleBookmarkPrivacy(
+    userId: string,
+    visibility: string
+  ): Promise<boolean> {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ bookmark_visibility: visibility })
       .eq('id', userId);
 
     if (error) {
