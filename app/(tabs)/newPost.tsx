@@ -122,6 +122,7 @@ export default function CreateNewPostScreen() {
               tags
             );
             resetAllFields();
+            showToast('Successfully created post');
             router.replace('/(tabs)/profile');
           },
         },
