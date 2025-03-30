@@ -60,7 +60,10 @@ export default function ViewPostScreen() {
   );
 
   const loadFriends = async (): Promise<void> => {
-    const friends = await userEndpoint.getFriends(activeProfile.id);
+    const friends = await userEndpoint.getFriendsThatCanSeePost(
+      activeProfile.id,
+      post?.id as string
+    );
     setFriends(friends);
   };
 
@@ -170,7 +173,7 @@ export default function ViewPostScreen() {
 
   const handleSendToChat = (): void => {
     if (friends.length === 0) {
-      return showToast("You don't have any friends to share with");
+      return showToast('None of your friends can see this post');
     }
     setShowChatModal(true);
     return;
