@@ -526,6 +526,113 @@ class SupabaseUserEndpoint {
     }
   }
 
+  async getFriendsThatCanSeePost(userId: string, postId: string) {
+    const { data: postData, error: postError } = await supabase
+      .from('posts')
+      .select('author_id, profiles!posts_author_id_fkey(is_private)')
+      .eq('id', postId)
+      .single();
+
+    if (postError) {
+      console.error(
+        'Error fetching getting friends that can see post:',
+        postError
+      );
+      return [];
+    }
+
+    const postAuthorId = postData.author_id;
+    const isAuthorPrivate = postData.profiles?.is_private;
+
+    // 1. Get all current user's friends
+    const { data: friends, error: friendsError } =
+      await userEndpoint.getFriends(userId);
+
+    if (friendsError || !friends || friends.length === 0) {
+      if (friendsError) console.error('Error fetching friends:', friendsError);
+      return [];
+    }
+
+    const friendIds = friends.map((friend) => friend.id);
+
+    // 2. Get blocks between post author and friends
+    const { data: blocks, error: blocksError } = await supabase
+      .from('blocks')
+      .select('blocker_id, blocked_id')
+      .or(
+        `(blocker_id.eq.${postAuthorId},blocked_id.in.(${friendIds.join(
+          ','
+        )})),` +
+          `(blocked_id.eq.${postAuthorId},blocker_id.in.(${friendIds.join(
+            ','
+          )}))`
+      );
+
+    if (blocksError) {
+      console.error('Error fetching blocks:', blocksError);
+      return [];
+    }
+
+    const blockedByAuthor = new Set(
+      (blocks || [])
+        .filter((block) => block.blocker_id === postAuthorId)
+        .map((block) => block.blocked_id)
+    );
+
+    const blockingAuthor = new Set(
+      (blocks || [])
+        .filter((block) => block.blocked_id === postAuthorId)
+        .map((block) => block.blocker_id)
+    );
+
+    let eligibleFriends = friends.filter(
+      (friend) =>
+        !blockedByAuthor.has(friend.id) && !blockingAuthor.has(friend.id)
+    );
+
+    // 3. If author has a private account, only show to mutual followers
+    if (isAuthorPrivate && userId !== postAuthorId) {
+      const { data: authorFollowers, error: followersError } = await supabase
+        .from('follows')
+        .select('follower_id')
+        .eq('following_id', postAuthorId)
+        .eq('status', 'accepted');
+
+      if (followersError) {
+        console.error('Error fetching author followers:', followersError);
+        return [];
+      }
+
+      const { data: authorFollowing, error: followingError } = await supabase
+        .from('follows')
+        .select('following_id')
+        .eq('follower_id', postAuthorId)
+        .eq('status', 'accepted');
+
+      if (followingError) {
+        console.error('Error fetching author following:', followingError);
+        return [];
+      }
+
+      const followerIds = new Set(
+        (authorFollowers || []).map((f) => f.follower_id)
+      );
+      const followingIds = new Set(
+        (authorFollowing || []).map((f) => f.following_id)
+      );
+
+      const authorMutualIds = new Set(
+        [...followerIds].filter((id) => followingIds.has(id))
+      );
+
+      eligibleFriends = eligibleFriends.filter(
+        (friend) => friend.id === postAuthorId || authorMutualIds.has(friend.id)
+      );
+    }
+
+    return eligibleFriends;
+  }
+
   async toggleAccountPrivacy(
     userId: string,
     selectedId: string
