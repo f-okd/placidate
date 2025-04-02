@@ -534,7 +534,10 @@ class SupabaseUserEndpoint {
       .single();
 
     if (postError) {
-      console.error('Error fetching post details:', postError);
+      console.error(
+        'Error fetching getting friends that can see post:',
+        postError
+      );
       return [];
     }
 
@@ -570,7 +573,6 @@ class SupabaseUserEndpoint {
       return [];
     }
 
-    // Create sets of blocked IDs for efficient filtering
     const blockedByAuthor = new Set(
       (blocks || [])
         .filter((block) => block.blocker_id === postAuthorId)
@@ -583,7 +585,6 @@ class SupabaseUserEndpoint {
         .map((block) => block.blocker_id)
     );
 
-    // Filter out friends who are blocked by or blocking the post author
     let eligibleFriends = friends.filter(
       (friend) =>
         !blockedByAuthor.has(friend.id) && !blockingAuthor.has(friend.id)
@@ -613,7 +614,6 @@ class SupabaseUserEndpoint {
         return [];
       }
 
-      // Create sets for efficient lookup
       const followerIds = new Set(
         (authorFollowers || []).map((f) => f.follower_id)
       );
@@ -621,12 +621,10 @@ class SupabaseUserEndpoint {
         (authorFollowing || []).map((f) => f.following_id)
       );
 
-      // Find mutual followers of the author
       const authorMutualIds = new Set(
         [...followerIds].filter((id) => followingIds.has(id))
       );
 
-      // Filter to only include author's mutual followers
       eligibleFriends = eligibleFriends.filter(
         (friend) => friend.id === postAuthorId || authorMutualIds.has(friend.id)
       );

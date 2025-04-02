@@ -62,7 +62,7 @@ export default function ViewPostScreen() {
   const loadFriends = async (): Promise<void> => {
     const friends = await userEndpoint.getFriendsThatCanSeePost(
       activeProfile.id,
-      post?.id as string
+      post_id as string
     );
     setFriends(friends);
   };
