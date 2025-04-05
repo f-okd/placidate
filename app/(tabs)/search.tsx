@@ -61,7 +61,7 @@ export default function SearchScreen() {
         setLoading(true);
         const usersResult = await userEndpoint.searchForUsers(
           activeProfile.id,
-          searchText
+          searchText.trim()
         );
         setFetchedUsers(usersResult);
         setLoading(false);
@@ -70,7 +70,7 @@ export default function SearchScreen() {
         setLoading(true);
         const postsResult = await postEndpoint.searchForPosts(
           activeProfile.id,
-          searchText
+          searchText.trim()
         );
         setfFetchedPosts(postsResult);
         setLoading(false);
@@ -78,7 +78,7 @@ export default function SearchScreen() {
         setLoading(true);
         const postsByTagResult = await postEndpoint.searchForPostsByTag(
           activeProfile.id,
-          searchText
+          searchText.trim()
         );
         setFetchedPostsByTag(postsByTagResult);
         setLoading(false);
@@ -115,6 +115,7 @@ export default function SearchScreen() {
             placeholder='Search...'
             value={searchText}
             onChangeText={setSearchText}
+            onSubmitEditing={handleSearch}
           />
 
           {/* Search Button */}

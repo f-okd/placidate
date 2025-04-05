@@ -129,7 +129,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         },
       },
     });
-    if (error) return console.error(error);
+    if (error) {
+      console.error(error);
+      console.error(error.message);
+      return;
+    }
 
     if (!data.user)
       return console.error(

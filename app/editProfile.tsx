@@ -9,12 +9,17 @@ import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Image,
+  Keyboard,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+
+class CustomError extends Error {
+  flag = 'X';
+}
 
 export default function EditProfile() {
   const router = useRouter();
@@ -58,8 +63,7 @@ export default function EditProfile() {
       const photo = result.assets[0];
       setLoading(true);
       setImage(photo.uri);
-      await userEndpoint.saveProfilePicture(activeProfile.id, photo.uri);
-      await refreshProfile();
+      // await refreshProfile();
       setLoading(false);
     } else {
       showToast('Error uploading your profile picture');
@@ -73,43 +77,35 @@ export default function EditProfile() {
       Boolean(activeProfile.avatar_url || image)
     );
     if (success) {
-      refreshProfile();
+      refreshProfile(true);
     }
     setLoading(false);
   };
 
   const handleUsernameChange = async () => {
     if (newUsername.trim() === activeProfile.username) {
-      showToast('Please enter a new username');
       return;
     }
 
     if (newUsername.length < 4) {
-      showToast('Username must be at least 4 characters long');
-      return;
+      throw new CustomError('Username must be at least 4 characters long');
     }
     if (newUsername.length > 16) {
-      showToast('Username can not be greater than 16 characters long');
-      return;
+      throw new CustomError('Username must be <= 16 characters');
     }
 
     if (newUsername.indexOf(' ') >= 0)
-      return showToast('Username must not contain whitespace.');
+      throw new CustomError('Username must not contain whitespace.');
     const alphanumeric = /^[\p{sc=Latn}\p{Nd}]*$/u;
     if (!alphanumeric.test(newUsername)) {
-      return showToast('Username may only contain letters and numbers');
+      throw new CustomError('Username may only contain letters and numbers');
     }
 
     setLoading(true);
     try {
-      const success = await userEndpoint.changeUsername(
-        activeProfile.id,
-        newUsername.trim()
-      );
-      if (success) await refreshProfile();
-      showToast('Username updated successfully');
+      await userEndpoint.changeUsername(activeProfile.id, newUsername.trim());
     } catch (error) {
-      showToast('Failed to update username');
+      throw new CustomError('Failed to update username');
     } finally {
       setLoading(false);
     }
@@ -131,16 +127,28 @@ export default function EditProfile() {
 
   // Separate submit handler for the button
   const handleBioSubmit = async () => {
+    await userEndpoint.updateBio(activeProfile.id, newBio.trim());
+  };
+
+  const handleSaveChanges = async () => {
     setLoading(true);
     try {
-      await userEndpoint.updateBio(activeProfile.id, newBio.trim());
+      showToast('Updating profile...');
+      await handleUsernameChange();
+      await handleBioSubmit();
+      image && (await userEndpoint.saveProfilePicture(activeProfile.id, image));
       await refreshProfile();
-      showToast('Bio updated successfully');
     } catch (error) {
-      showToast('Failed to update bio');
+      if (error instanceof CustomError) {
+        showToast(error.message);
+      } else {
+        showToast('Failed to update bio:');
+      }
+      return;
     } finally {
       setLoading(false);
     }
+    showToast('Profile  updated successfully');
   };
 
   if (loading) {
@@ -190,15 +198,6 @@ export default function EditProfile() {
             placeholder='Enter new username'
             maxLength={16}
           />
-          <TouchableOpacity
-            className='bg-purple-200 rounded-lg p-3'
-            onPress={handleUsernameChange}
-            disabled={loading}
-          >
-            <Text className='text-white text-center font-semibold'>
-              Update Username
-            </Text>
-          </TouchableOpacity>
         </View>
 
         {/* Bio Section */}
@@ -213,17 +212,17 @@ export default function EditProfile() {
             multiline
             numberOfLines={15}
           />
-          <TouchableOpacity
-            className='bg-purple-200 rounded-lg p-3'
-            onPress={handleBioSubmit}
-            disabled={loading}
-          >
-            <Text className='text-white text-center font-semibold'>
-              Update Bio
-            </Text>
-          </TouchableOpacity>
         </View>
 
+        <TouchableOpacity
+          className='bg-purple-200 rounded-lg p-3'
+          onPress={handleSaveChanges}
+          disabled={loading}
+        >
+          <Text className='text-white text-center font-semibold'>
+            Update Profile
+          </Text>
+        </TouchableOpacity>
         {/* Back Button */}
         <TouchableOpacity
           className='mt-4 p-3'

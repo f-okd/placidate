@@ -17,6 +17,7 @@ import {
   Alert,
   FlatList,
   Image,
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -108,6 +109,7 @@ export default function ViewPostScreen() {
     await userPostEndpoint.addComment(activeProfile.id, String(post_id), text);
     setText('');
     await loadComments();
+    Keyboard.dismiss();
   };
 
   const handleDeleteComment = async (
@@ -339,6 +341,7 @@ export default function ViewPostScreen() {
             <TextInput
               className='flex-1 bg-gray-100 px-4 py-2 rounded-full'
               placeholder='Add a comment'
+              onSubmitEditing={handleAddComment}
               value={text}
               onChange={(e) => setText(e.nativeEvent.text)}
             />
