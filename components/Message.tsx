@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { formatDistanceToNow } from 'date-fns';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { getTimeAgo } from '@/utils/helpers';
 
 export type MessageData = {
   id: string;
@@ -87,7 +88,7 @@ const Message = ({ message, isMyMessage, navigateToPost }: MessageProps) => {
     >
       {renderMessageContent()}
       <Text className='text-xs text-gray-500 mt-1 self-end'>
-        {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
+        {getTimeAgo(message.created_at)}
       </Text>
     </View>
   );
