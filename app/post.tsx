@@ -277,7 +277,10 @@ export default function ViewPostScreen() {
       {/* Description */}
       {description && (
         <View className='px-4 py-2'>
-          <Text>{description}</Text>
+          <Text>
+            <Text className='font-bold'>{username}:</Text>
+            <Text> {description}</Text>
+          </Text>
         </View>
       )}
 
