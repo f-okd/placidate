@@ -545,11 +545,9 @@ class SupabaseUserEndpoint {
     const isAuthorPrivate = postData.profiles?.is_private;
 
     // 1. Get all current user's friends
-    const { data: friends, error: friendsError } =
-      await userEndpoint.getFriends(userId);
+    const friends = await this.getFriends(userId);
 
-    if (friendsError || !friends || friends.length === 0) {
-      if (friendsError) console.error('Error fetching friends:', friendsError);
+    if (!friends || friends.length === 0) {
       return [];
     }
 
@@ -559,14 +557,9 @@ class SupabaseUserEndpoint {
     const { data: blocks, error: blocksError } = await supabase
       .from('blocks')
       .select('blocker_id, blocked_id')
-      .or(
-        `(blocker_id.eq.${postAuthorId},blocked_id.in.(${friendIds.join(
-          ','
-        )})),` +
-          `(blocked_id.eq.${postAuthorId},blocker_id.in.(${friendIds.join(
-            ','
-          )}))`
-      );
+      .or(`blocker_id.eq.${postAuthorId},blocked_id.eq.${postAuthorId}`)
+      .in('blocked_id', friendIds.concat([postAuthorId]))
+      .in('blocker_id', friendIds.concat([postAuthorId]));
 
     if (blocksError) {
       console.error('Error fetching blocks:', blocksError);
@@ -631,6 +624,82 @@ class SupabaseUserEndpoint {
     }
 
     return eligibleFriends;
+  }
+
+  async getFriendsInOrderOfRecentMessaging(userId: string): Promise<
+    {
+      friend: TProfile;
+      lastMessage: {
+        body: string;
+        created_at: string;
+        is_post_share: boolean;
+      } | null;
+    }[]
+  > {
+    try {
+      const friends = await this.getFriends(userId);
+
+      if (friends.length === 0) return [];
+
+      const friendIds = friends.map((friend) => friend.id);
+
+      const { data: messageData, error: messageError } = await supabase
+        .from('messages')
+        .select('*')
+        .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+        .in('sender_id', [...friendIds, userId])
+        .in('receiver_id', [...friendIds, userId]);
+
+      if (messageError) {
+        console.error('Error fetching messages:', messageError);
+        return friends.map((friend) => ({ friend, lastMessage: null }));
+      }
+
+      const friendMessageMap = new Map();
+
+      messageData.forEach((message) => {
+        const friendId =
+          message.sender_id === userId
+            ? message.receiver_id
+            : message.sender_id;
+
+        if (!friendIds.includes(friendId)) return;
+
+        if (
+          !friendMessageMap.has(friendId) ||
+          new Date(message.created_at) >
+            new Date(friendMessageMap.get(friendId).created_at)
+        ) {
+          friendMessageMap.set(friendId, {
+            body: message.body,
+            created_at: message.created_at,
+            is_post_share: message.body.includes('{{post:'),
+            sender_id: message.sender_id,
+          });
+        }
+      });
+
+      const result = friends.map((friend) => ({
+        friend,
+        lastMessage: friendMessageMap.get(friend.id) || null,
+      }));
+
+      // Sort by most recent message
+      return result.sort((a, b) => {
+        // Friends with no messages go to the bottom
+        if (!a.lastMessage) return 1;
+        if (!b.lastMessage) return -1;
+
+        // Sort by message timestamp, most recent first
+        return (
+          new Date(b.lastMessage.created_at).getTime() -
+          new Date(a.lastMessage.created_at).getTime()
+        );
+      });
+    } catch (error) {
+      console.error('Error in getFriendsInOrderOfRecentMessaging:', error);
+      return [];
+    }
   }
 
   async toggleAccountPrivacy(

@@ -5,8 +5,8 @@ import SupabasePostEndpoint from '@/lib/supabase/PostEndpoint';
 import SupabaseUserEndpoint from '@/lib/supabase/UserEndpoint';
 import { TPost, TProfile } from '@/utils/types';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -47,13 +47,15 @@ export default function SearchScreen() {
   const postEndpoint = new SupabasePostEndpoint();
   const userEndpoint = new SupabaseUserEndpoint();
 
-  useEffect(() => {
-    for (const [key, value] of Object.entries(SearchTerm)) {
-      if (params.searchTerm === value) {
-        setSearchType(SearchTerm[key as keyof typeof SearchTerm]);
+  useFocusEffect(
+    useCallback(() => {
+      for (const [key, value] of Object.entries(SearchTerm)) {
+        if (params.searchTerm === value) {
+          setSearchType(SearchTerm[key as keyof typeof SearchTerm]);
+        }
       }
-    }
-  }, [params, searchType]);
+    }, [params, searchType])
+  );
 
   const handleSearch = async () => {
     switch (searchType) {

@@ -1,15 +1,40 @@
-import { View, Image, Text, TouchableOpacity } from 'react-native';
-import React from 'react';
+import { getTimeAgo } from '@/utils/helpers';
 import { TProfile } from '@/utils/types';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React from 'react';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
 
 interface InboxChatPreviewProps {
   user: TProfile;
+  lastMessage: {
+    body: string;
+    created_at: string;
+    is_post_share: boolean;
+    sender_id: string;
+  } | null;
 }
 
-export default function InboxChatPreview({ user }: InboxChatPreviewProps) {
+export default function InboxChatPreview({
+  user,
+  lastMessage,
+}: InboxChatPreviewProps) {
   const router = useRouter();
+
+  const getMessagePreview = () => {
+    if (!lastMessage) return 'Say hi 👋';
+    if (lastMessage.is_post_share) {
+      if (lastMessage.sender_id != user.id) {
+        return 'You shared a post';
+      } else {
+        return 'Shared a post';
+      }
+    }
+
+    return lastMessage.body.length > 25
+      ? lastMessage.body.substring(0, 25) + '...'
+      : lastMessage.body;
+  };
 
   return (
     <TouchableOpacity
@@ -29,10 +54,19 @@ export default function InboxChatPreview({ user }: InboxChatPreviewProps) {
             testID='avatar'
           />
           <View>
-            <Text className='font-bold ' testID='username'>
+            <Text className='font-bold' testID='username'>
               {user.username}
             </Text>
-            <Text testID='message-preview'>Say hi 👋</Text>
+            <View className='flex-row items-center'>
+              <Text testID='message-preview' className='text-gray-600'>
+                {getMessagePreview()}
+              </Text>
+              {lastMessage && (
+                <Text className='text-gray-400 text-xs ml-1'>
+                  · {getTimeAgo(lastMessage.created_at)}
+                </Text>
+              )}
+            </View>
           </View>
         </View>
         <Ionicons

@@ -6,19 +6,40 @@ import { TProfile } from '@/utils/types';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { FlatList, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 export default function InboxScreen() {
   const router = useRouter();
-  const [friends, setFriends] = useState<TProfile[]>();
+  const [friends, setFriends] = useState<
+    {
+      friend: TProfile;
+      lastMessage: {
+        body: string;
+        created_at: string;
+        is_post_share: boolean;
+      } | null;
+    }[]
+  >([]);
+  const [loading, setLoading] = useState(true);
   const { profile: uncastedProfile } = useAuth();
   const activeProfile = uncastedProfile as TProfile;
 
   const userEndpoint = new SupabaseUserEndpoint();
+
   const fetchAndSetFriends = async () => {
-    const friends = await userEndpoint.getFriends(activeProfile.id);
-    setFriends(friends);
+    setLoading(true);
+    const friendsWithMessages =
+      await userEndpoint.getFriendsInOrderOfRecentMessaging(activeProfile.id);
+    setFriends(friendsWithMessages);
+    setLoading(false);
   };
+
   useFocusEffect(
     useCallback(() => {
       fetchAndSetFriends();
@@ -26,13 +47,13 @@ export default function InboxScreen() {
   );
 
   return (
-    <View className='flex-1 p-2 bg-white '>
+    <View className='flex-1 p-2 bg-white'>
       <Header showBackIcon title='Inbox' />
 
       {/*New Followers*/}
       <TouchableOpacity
         onPress={() => router.push('/recentFollowers')}
-        className='flex-row gap-2 items-center w-full m-1 '
+        className='flex-row gap-2 items-center w-full m-1'
       >
         <View className='flex-row justify-between w-full items-center pr-3'>
           <View className='flex-row gap-2'>
@@ -71,10 +92,30 @@ export default function InboxScreen() {
       <View className='mx-1 my-5'>
         <Text>Messages:</Text>
       </View>
-      <FlatList
-        data={friends}
-        renderItem={({ item }) => <InboxChatPreview user={item} />}
-      />
+
+      {loading ? (
+        <View className='flex-1 items-center justify-center'>
+          <ActivityIndicator size='large' />
+        </View>
+      ) : (
+        <FlatList
+          data={friends}
+          renderItem={({ item }) => (
+            <InboxChatPreview
+              user={item.friend}
+              lastMessage={item.lastMessage}
+            />
+          )}
+          keyExtractor={(item) => item.friend.id}
+          ListEmptyComponent={() => (
+            <View className='flex-1 items-center justify-center my-10'>
+              <Text className='text-gray-500'>
+                You don't have any conversations yet
+              </Text>
+            </View>
+          )}
+        />
+      )}
     </View>
   );
 }
