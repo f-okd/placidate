@@ -42,6 +42,7 @@ export default function CreateNewPostScreen() {
   const postEndpoint = new SupabasePostEndpoint();
 
   const resetAllFields = (): void => {
+    setSelectedPostTypeId('1');
     setTitle('');
     setDescription('');
     setBody('');
@@ -295,7 +296,7 @@ export default function CreateNewPostScreen() {
 
               {/*Create post button */}
               <TouchableOpacity
-                className='bg-purple-200 rounded-lg py-3 px-6 w-[150px] h-[45px]'
+                className='bg-purple-200 rounded-lg py-3 px-6 w-[130px] h-[45px]'
                 onPress={() => handleCreatePost()}
               >
                 <Text className='text-white text-lg font-semibold'>
@@ -323,6 +324,7 @@ export default function CreateNewPostScreen() {
               onChangeText={setNewTag}
               className='border border-gray-300 rounded-md p-2 mb-4'
               placeholder='Enter tag name'
+              onSubmitEditing={handleAddTagAndCloseModal}
               maxLength={15}
             />
             <View className='flex-row justify-end gap-4'>
